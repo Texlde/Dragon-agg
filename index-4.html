@@ -1,0 +1,1773 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="color-scheme" content="dark">
+<title>Драконье гнездо</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+
+:root{
+  --night:#1b1740; --panel:#2a2560; --panel2:#352f75; --ink:#f2efff; --mute:#a9a3d6;
+  --ember:#ff8a3d; --ember2:#ff6a3d; --gold:#ffcf4a; --mint:#6fe3c1; --danger:#ff6b81;
+  --r0:#9fb0c3; --r1:#4aa8ff; --r2:#b872ff; --r3:#ffb52e; --r4:#ff5fb0;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#1b1740}
+body{
+  font-family:ui-rounded,"SF Pro Rounded","Nunito","Trebuchet MS",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color:var(--ink);-webkit-font-smoothing:antialiased;overscroll-behavior:none;
+  -webkit-user-select:none;user-select:none;
+}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+button:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
+#app{
+  max-width:480px;margin:0 auto;height:100vh;height:100dvh;display:flex;flex-direction:column;position:relative;overflow:hidden;
+  background:
+    radial-gradient(1.5px 1.5px at 12% 18%,#fff9 50%,#0000 52%),
+    radial-gradient(1px 1px at 78% 10%,#fff8 50%,#0000 52%),
+    radial-gradient(1.5px 1.5px at 60% 34%,#fffa 50%,#0000 52%),
+    radial-gradient(1px 1px at 30% 46%,#fff7 50%,#0000 52%),
+    radial-gradient(1px 1px at 90% 52%,#fff7 50%,#0000 52%),
+    radial-gradient(1.5px 1.5px at 44% 8%,#fff8 50%,#0000 52%),
+    linear-gradient(180deg,#2c2670 0%,#1b1740 55%,#14203f 100%);
+}
+#top{display:flex;gap:8px;padding:12px 14px 6px;align-items:center;flex-wrap:nowrap}
+.chip{display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.09);font-weight:700;font-size:14px;white-space:nowrap}
+.chip.gold{background:rgba(255,207,74,.16);color:var(--gold);font-size:16px;flex:1}
+.chip.dim{opacity:.55}
+#screen{flex:1;overflow-y:auto;overflow-x:hidden;padding:4px 14px 18px;-webkit-overflow-scrolling:touch}
+#tabs{display:grid;grid-template-columns:repeat(5,1fr);background:rgba(14,11,40,.86);border-top:1px solid rgba(255,255,255,.08);padding-bottom:env(safe-area-inset-bottom)}
+#tabs button{position:relative;padding:9px 0 8px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;color:var(--mute);font-weight:600}
+#tabs button .ic{font-size:22px;filter:grayscale(.6);transition:transform .15s}
+#tabs button.on{color:var(--gold)}
+#tabs button.on .ic{filter:none;transform:translateY(-2px) scale(1.12)}
+.dot{position:absolute;top:6px;left:calc(50% + 8px);width:10px;height:10px;border-radius:50%;background:var(--danger);border:2px solid #1b1740;display:none}
+.dot.show{display:block}
+
+.seg{display:flex;gap:4px;padding:4px;border-radius:14px;background:rgba(255,255,255,.07);width:max-content;margin:4px auto 0}
+.seg button{padding:7px 18px;border-radius:11px;font-weight:700;font-size:14px;color:var(--mute)}
+.seg button.on{background:var(--panel2);color:var(--ink)}
+
+.scene{position:relative;height:310px;display:flex;align-items:flex-end;justify-content:center;margin-top:2px}
+.glow{position:absolute;bottom:26px;width:310px;height:310px;border-radius:50%;background:radial-gradient(circle,var(--c) 0%,transparent 66%);opacity:.3}
+.nest{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:310px;height:84px;pointer-events:none}
+.creature{position:relative;z-index:1;width:250px;height:250px;margin-bottom:38px;touch-action:manipulation;cursor:pointer;-webkit-tap-highlight-color:transparent;animation:idle 3.4s ease-in-out infinite;transform-origin:50% 90%}
+.creature.egg{width:196px;height:236px;margin-bottom:34px}
+.creature svg{width:100%;height:100%;display:block;pointer-events:none;overflow:visible}
+.creature.squish{animation:squish .2s ease-out}
+.creature.wob{animation:wob .28s ease-out}
+.creature.happy{animation:happy .6s ease-out}
+.myth{animation:hue 6s linear infinite}
+.tw{animation:tw 2.2s ease-in-out infinite}
+.pop{position:absolute;z-index:5;font-weight:800;font-size:22px;color:var(--gold);text-shadow:0 2px 0 #5a3a00,0 0 10px rgba(255,207,74,.6);pointer-events:none;animation:rise .85s ease-out forwards}
+
+.card{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:14px 16px;margin-top:12px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.dname{font-size:22px;font-weight:800;line-height:1.15}
+.sub{font-size:13px;color:var(--mute);line-height:1.35;margin-top:2px}
+.pill{display:inline-block;padding:4px 11px;border-radius:999px;font-size:12px;font-weight:800;color:#1b1030;background:var(--rc,var(--r0));white-space:nowrap}
+.bar{height:10px;border-radius:999px;background:rgba(255,255,255,.12);overflow:hidden;margin:10px 0 6px}
+.bar b{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--mint),#b8ff9f);transition:width .25s}
+.bar.ember b{background:linear-gradient(90deg,var(--ember),var(--gold))}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.stat{background:rgba(0,0,0,.18);border-radius:14px;padding:9px 12px}
+.stat span{display:block;font-size:12px;color:var(--mute)}
+.stat b{font-size:17px;color:var(--gold)}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.btn{padding:13px 14px;border-radius:16px;font-weight:800;font-size:15px;text-align:center;background:var(--panel2);color:var(--ink);transition:transform .1s,filter .1s}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:linear-gradient(180deg,var(--ember),var(--ember2));color:#2b1300;box-shadow:0 4px 0 #a8431d}
+.btn.primary:active{box-shadow:0 1px 0 #a8431d;transform:translateY(3px)}
+.btn.mint{background:var(--mint);color:#06332a}
+.btn.ghost{background:transparent;border:2px solid rgba(255,255,255,.2)}
+.btn.full{grid-column:1/-1;width:100%}
+.btn[disabled]{opacity:.45;pointer-events:none}
+.btn small{display:block;font-weight:600;font-size:12px;opacity:.8;margin-top:1px}
+.eggcap{text-align:center;margin-top:10px}
+.eggcap .ename{font-size:20px;font-weight:800}
+.eggcap .bar{max-width:280px;margin:10px auto 6px}
+h3{font-size:18px;font-weight:800;margin:16px 2px 0}
+.hint{font-size:13px;color:var(--mute);margin:6px 2px 0;line-height:1.4}
+
+.shop{display:grid;gap:10px;margin-top:10px}
+.shopitem{display:flex;align-items:center;gap:12px;text-align:left;background:rgba(0,0,0,.2);border-radius:16px;padding:10px 12px;width:100%}
+.shopitem .mini{width:52px;height:62px;flex:none}
+.shopitem .mini svg{width:100%;height:100%}
+.shopitem b{display:block;font-size:16px}
+.shopitem span{font-size:12px;color:var(--mute);line-height:1.3;display:block}
+.shopitem .cost{margin-left:auto;font-weight:800;color:var(--gold);white-space:nowrap}
+
+.stats3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.dcard{position:relative;border-radius:20px;padding:8px 8px 12px;text-align:center;background:rgba(255,255,255,.06);border:2px solid var(--rc);box-shadow:0 0 18px -6px var(--rc),inset 0 0 24px -14px var(--rc)}
+.dcard .art{width:100%;aspect-ratio:1/1}
+.dcard .art svg{width:100%;height:100%;display:block}
+.dcard b{display:block;font-size:15px}
+.dcard span{font-size:12px;color:var(--mute)}
+.dcard .star{position:absolute;top:8px;left:10px;font-size:16px}
+.dcard .pill{position:absolute;top:8px;right:8px;font-size:11px;padding:3px 8px}
+.album{display:grid;gap:8px;margin-top:10px}
+.arow{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.05);border-radius:16px;padding:8px 12px}
+.arow .el{font-size:22px;width:30px;text-align:center}
+.arow .bn{flex:1;font-weight:700;font-size:14px}
+.swatch{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:14px;font-weight:800;border:2px solid rgba(255,255,255,.35);background:var(--sw)}
+.swatch.no{background:rgba(255,255,255,.08);border-style:dashed;color:var(--mute)}
+
+.q{display:flex;flex-direction:column;gap:6px}
+.q .qt{font-weight:700;font-size:15px}
+.q .qr{font-weight:800;color:var(--gold);white-space:nowrap}
+.q .bar{margin:4px 0 0}
+.q.done{opacity:.55}
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:12px}
+.day{border-radius:12px;padding:8px 0 6px;text-align:center;background:rgba(0,0,0,.2);font-size:11px;color:var(--mute);border:2px solid transparent}
+.day i{display:block;font-style:normal;font-size:20px;margin:2px 0}
+.day b{display:block;font-size:12px;color:var(--ink)}
+.day.got{background:rgba(111,227,193,.16);border-color:rgba(111,227,193,.4)}
+.day.now{background:rgba(255,207,74,.18);border-color:var(--gold);animation:glowpulse 1.8s ease-in-out infinite}
+.ach .at{font-weight:800;font-size:15px}
+.ach .ad{font-size:13px;color:var(--mute)}
+.ach.got{opacity:.5}
+
+.exp .party{display:flex;gap:6px;margin:10px 0 2px}
+.exp .av{width:56px;height:56px;border-radius:14px;background:rgba(0,0,0,.22);padding:2px}
+.exp .av svg{width:100%;height:100%;display:block}
+.locrow{display:flex;gap:12px;align-items:center}
+.lic{font-size:30px;width:44px;text-align:center;flex:none}
+.pick{grid-template-columns:repeat(3,1fr);gap:8px}
+.pick .dcard{padding:4px 4px 8px}
+.pick .dcard b{font-size:13px}
+.pick .pill{display:none}
+.dcard.on{background:rgba(111,227,193,.22);outline:3px solid var(--mint)}
+.sum{text-align:left;background:rgba(0,0,0,.22);border-radius:16px;padding:10px 14px;margin-top:12px;font-size:14px;line-height:1.55}
+.sum b{color:var(--gold)}
+.creature.egg.ready{animation:shake 1.5s ease-in-out infinite}
+@keyframes shake{0%,70%,100%{transform:rotate(0)}76%{transform:rotate(-5deg)}82%{transform:rotate(5deg)}88%{transform:rotate(-4deg)}94%{transform:rotate(3deg)}}
+.overlay{position:fixed;inset:0;z-index:50;background:rgba(10,8,30,.78);display:flex;align-items:center;justify-content:center;padding:18px;animation:fade .2s}
+.sheet{position:relative;width:100%;max-width:380px;max-height:92vh;overflow-y:auto;overflow-x:hidden;background:linear-gradient(180deg,#352f75,#2a2560);border:1px solid rgba(255,255,255,.14);border-radius:28px;padding:20px 18px 18px;text-align:center;animation:sheet .28s cubic-bezier(.2,1.3,.4,1)}
+.sheet h2{font-size:24px;font-weight:800;margin-top:4px}
+.sheet p{color:var(--mute);font-size:14px;line-height:1.4;margin-top:6px}
+.sheet .big{width:230px;height:230px;margin:6px auto 0}
+.sheet .big svg{width:100%;height:100%;display:block;overflow:visible}
+.sheet .btn{width:100%;margin-top:14px}
+.sheet .two{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
+.sheet .two .btn{margin-top:8px}
+.banner{display:inline-block;padding:6px 16px;border-radius:999px;font-weight:800;font-size:14px;color:#1b1030;background:var(--rc);box-shadow:0 0 24px var(--rc)}
+.newlook{color:var(--mint)!important;font-weight:800}
+.burst{position:absolute;left:50%;top:150px;width:0;height:0;pointer-events:none}
+.burst i{position:absolute;left:-8px;top:-8px;width:16px;height:16px;background:#efe6ff;clip-path:polygon(50% 0,100% 100%,0 80%);animation:fly .95s ease-out forwards}
+.burst i:nth-child(3n){background:var(--rc)}
+.burst i:nth-child(3n+1){background:#ffd98a}
+#toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:#0e0b28;color:var(--ink);padding:10px 18px;border-radius:999px;font-weight:700;font-size:14px;opacity:0;pointer-events:none;transition:.25s;z-index:80;border:1px solid rgba(255,255,255,.15);max-width:92%;text-align:center}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+
+@keyframes idle{0%,100%{transform:translateY(0) scale(1,1)}50%{transform:translateY(-5px) scale(1.012,.99)}}
+@keyframes squish{0%{transform:scale(1)}35%{transform:scale(1.09,.9)}100%{transform:scale(1)}}
+@keyframes wob{0%{transform:rotate(0)}25%{transform:rotate(-7deg)}60%{transform:rotate(6deg)}100%{transform:rotate(0)}}
+@keyframes happy{0%{transform:translateY(0)}30%{transform:translateY(-26px) rotate(-4deg)}60%{transform:translateY(0) rotate(3deg)}80%{transform:translateY(-8px)}100%{transform:translateY(0)}}
+@keyframes rise{from{opacity:1;transform:translateY(0) scale(.8)}to{opacity:0;transform:translateY(-80px) scale(1.15)}}
+@keyframes hue{to{filter:hue-rotate(360deg)}}
+@keyframes tw{0%,100%{opacity:.25}50%{opacity:1}}
+@keyframes fade{from{opacity:0}}
+@keyframes sheet{from{transform:scale(.85) translateY(20px);opacity:0}}
+@keyframes fly{from{transform:translate(0,0) rotate(0) scale(1);opacity:1}to{transform:translate(var(--dx),var(--dy)) rotate(var(--rot)) scale(.6);opacity:0}}
+@keyframes glowpulse{50%{box-shadow:0 0 16px rgba(255,207,74,.5)}}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+
+/* ---- v3 additions & overrides ---- */
+#top{gap:6px;padding:10px 12px 6px}
+.chip{padding:6px 10px;font-size:13px}
+.chip.gold{font-size:15px;flex:1.2}
+.chip.gem{color:#9fe8ff;background:rgba(80,200,255,.14)}
+#screen{position:relative}
+#screen.map{padding:0;overflow:hidden}
+.scene{position:relative;height:320px;margin:6px 0 0;border-radius:26px;overflow:hidden;display:flex;align-items:flex-end;justify-content:center;border:1px solid rgba(255,255,255,.14);box-shadow:0 10px 30px -12px rgba(0,0,0,.6)}
+.scenesvg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.glow{display:none}
+.nest{display:none}
+.creature{width:min(380px,104%);height:auto;aspect-ratio:372/316;margin-bottom:0;position:relative;z-index:2;animation:idle 3.4s ease-in-out infinite;transform-origin:50% 90%}
+.creature.egg{width:180px;aspect-ratio:200/240;margin-bottom:26px}
+.creature svg{width:100%;height:100%;display:block;overflow:visible;filter:drop-shadow(0 8px 10px rgba(0,0,0,.35))}
+.dsvg{overflow:visible}
+.btn.small{padding:8px 14px;font-size:14px}
+.row.top{align-items:flex-start}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
+.item{position:relative;background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.12);border-radius:18px;padding:6px 6px 10px;text-align:center}
+.item.own{border-color:rgba(111,227,193,.55)}
+.item.on{border-color:var(--gold);box-shadow:0 0 16px -4px var(--gold)}
+.item .art{width:100%;height:0;padding-bottom:88%;border-radius:12px;overflow:hidden;position:relative;background:rgba(0,0,0,.2)}
+.item .art>svg,.item .art>div{position:absolute;inset:0;width:100%;height:100%;display:block}
+.item .art svg{width:100%;height:100%;display:block}
+.item b{display:block;font-size:13px;margin-top:6px;line-height:1.2}
+.item .pr{font-size:12px;color:var(--gold);font-weight:800;margin-top:3px;min-height:16px}
+.item .pr.lock{color:var(--mute);font-weight:600}
+.item .btn{padding:6px 8px;font-size:13px;margin-top:6px;width:100%}
+.slotrow{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.chipb{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.1);font-size:13px;font-weight:700;border:2px solid transparent}
+.chipb.on{border-color:var(--mint);background:rgba(111,227,193,.2)}
+.slotname{font-size:12px;color:var(--mute);margin-top:10px;text-align:left}
+
+/* map */
+.mapwrap{position:absolute;inset:0;touch-action:none;background:#0a2f6a;overflow:hidden}
+.mapwrap svg#mapsvg{width:100%;height:100%;display:block}
+.mapctl{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:8px;z-index:3}
+.mapctl button{width:44px;height:44px;border-radius:14px;background:rgba(14,11,40,.78);border:1px solid rgba(255,255,255,.2);font-size:20px;font-weight:800;color:#fff}
+.maphint{position:absolute;left:10px;top:10px;z-index:3;background:rgba(14,11,40,.72);padding:8px 12px;border-radius:14px;font-size:12px;color:var(--ink);max-width:62%;line-height:1.35;pointer-events:none}
+.squads{position:absolute;left:8px;right:8px;bottom:8px;display:flex;gap:8px;overflow-x:auto;z-index:3;padding-bottom:2px}
+.sq{flex:none;background:rgba(14,11,40,.86);border:1px solid rgba(255,255,255,.2);border-radius:16px;padding:8px 12px;font-weight:700;font-size:13px;text-align:left;min-width:140px}
+.sq small{display:block;color:var(--mute);font-weight:600;font-size:12px;margin-top:2px}
+.sq.done{border-color:var(--mint);background:rgba(20,70,60,.9);animation:glowpulse 1.8s infinite}
+.mk text{font-family:inherit}
+
+/* battle */
+#battle{position:fixed;inset:0;z-index:60;display:none;background:#0e0b28}
+#battle.show{display:block}
+.bt{position:relative;max-width:480px;margin:0 auto;height:100%;display:flex;flex-direction:column;overflow:hidden}
+.bt .bgs{position:absolute;inset:0;opacity:.55}
+.bt .bgs svg{width:100%;height:100%}
+.bt>*:not(.bgs){position:relative;z-index:1}
+.bt-top{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;font-weight:800;font-size:15px;background:linear-gradient(180deg,rgba(10,8,30,.85),transparent)}
+.bt-top small{font-weight:600;color:var(--mute);font-size:12px;display:block}
+.bt-en{display:flex;gap:8px;justify-content:center;padding:6px 10px;min-height:150px;align-items:flex-end}
+.en{flex:1;max-width:130px;text-align:center;border-radius:18px;padding:8px 4px 8px;background:rgba(10,8,30,.55);border:2px solid transparent;position:relative}
+.en.sel{border-color:var(--gold);box-shadow:0 0 18px -4px var(--gold)}
+.en.dead{opacity:.18;pointer-events:none;filter:grayscale(1)}
+.en .em{font-size:50px;line-height:1.1;filter:drop-shadow(0 4px 6px rgba(0,0,0,.5));display:block}
+.en.boss .em{font-size:72px}
+.en .nm{font-size:12px;font-weight:700;margin-top:2px}
+.en .st{position:absolute;top:4px;right:6px;font-size:14px}
+.hp{height:8px;border-radius:99px;background:rgba(0,0,0,.45);overflow:hidden;margin-top:5px}
+.hp b{display:block;height:100%;background:linear-gradient(90deg,#ff5a5a,#ffb02e);transition:width .25s}
+.hp.ally b{background:linear-gradient(90deg,#3fbf6a,#b8ff9f)}
+.bt-log{flex:1;display:flex;flex-direction:column;justify-content:center;text-align:center;padding:4px 18px;min-height:60px}
+.bt-log div{font-size:14px;font-weight:700;text-shadow:0 2px 4px #000}
+.bt-log div.old{opacity:.5;font-size:12px}
+.bt-party{display:flex;gap:8px;justify-content:center;padding:6px 10px}
+.pc{flex:1;max-width:140px;text-align:center;border-radius:18px;padding:4px 4px 8px;background:rgba(10,8,30,.6);border:2px solid transparent;position:relative}
+.pc.act{border-color:var(--mint);box-shadow:0 0 18px -4px var(--mint)}
+.pc.dead{opacity:.35;filter:grayscale(1)}
+.pc .art{width:100%;aspect-ratio:372/316;pointer-events:none}
+.pc .art svg{width:100%;height:100%;display:block}
+.pc .nm{font-size:12px;font-weight:700}
+.pc .cd{position:absolute;top:4px;left:6px;font-size:12px;font-weight:800;background:rgba(0,0,0,.55);border-radius:99px;padding:1px 6px}
+.bt-act{padding:8px 12px calc(14px + env(safe-area-inset-bottom));display:grid;grid-template-columns:1fr 1fr;gap:8px;background:linear-gradient(0deg,rgba(10,8,30,.92),transparent)}
+.bt-act .btn{padding:12px 8px;font-size:14px}
+.bt-act .info{grid-column:1/-1;text-align:center;font-size:12px;color:var(--mute);min-height:16px}
+.dmg{position:absolute;left:50%;top:20%;transform:translateX(-50%);font-weight:900;font-size:24px;text-shadow:0 2px 0 #000,0 0 8px #000;pointer-events:none;animation:rise .9s ease-out forwards;z-index:5}
+.dmg.heal{color:#8aff9f}.dmg.hit{color:#ffd24a}.dmg.crit{color:#ff8a5a}.dmg.me{color:#ff6b81}
+.flash{animation:flash .35s}
+@keyframes flash{50%{filter:brightness(2.2) saturate(1.5)}}
+.shake{animation:shk .3s}
+@keyframes shk{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.fxs{position:absolute;left:50%;top:30%;font-size:44px;transform:translate(-50%,-50%);animation:fxs .7s ease-out forwards;pointer-events:none;z-index:6}
+@keyframes fxs{0%{opacity:0;transform:translate(-50%,-50%) scale(.3)}40%{opacity:1;transform:translate(-50%,-50%) scale(1.4)}100%{opacity:0;transform:translate(-50%,-80%) scale(1)}}
+.tag{display:inline-block;padding:2px 8px;border-radius:99px;font-size:12px;font-weight:800;background:rgba(255,255,255,.14)}
+.stars{color:#ffd24a;letter-spacing:1px;font-size:16px}
+.diff-g{color:#6fe3a0}.diff-y{color:#ffd24a}.diff-r{color:#ff6b81}
+.seg.wide{width:100%}.seg.wide button{flex:1;padding:8px 6px;font-size:13px}
+.sheet .grid{max-height:44vh;overflow:auto}
+#battle.show ~ #toast{bottom:auto;top:64px}
+
+</style>
+</head>
+<body>
+<div id="app">
+  <header id="top"></header>
+  <main id="screen"></main>
+  <nav id="tabs"></nav>
+</div>
+<div id="battle"></div>
+<div id="modal-root"></div>
+<div id="toast"></div>
+<script>
+/* ===== Core data: breeds, rarities ===== */
+const RARITY = [
+  { name: 'Обычный',     color: '#9fb0c3', mult: 1 },
+  { name: 'Редкий',      color: '#4aa8ff', mult: 1.6 },
+  { name: 'Эпический',   color: '#b872ff', mult: 2.8 },
+  { name: 'Легендарный', color: '#ffb52e', mult: 5 },
+  { name: 'Мифический',  color: '#ff5fb0', mult: 10 }
+];
+// палитра: n имя, body, belly, wing (кости/тёмная часть), light (перепонка), eye, horn, accent, glow
+const BREEDS = [
+  { id:'fire',  name:'Огненный', el:'🔥', col:'#ff7a2a', v:[
+    {n:'Алый',     body:'#d9381e', belly:'#ffc977', wing:'#a82414', light:'#ff9a3c', eye:'#ffd23c', horn:'#d8b274', accent:'#ff8a1f', glow:'#ff7a1a'},
+    {n:'Янтарный', body:'#e58a1f', belly:'#ffe3a0', wing:'#b5560f', light:'#ffd06a', eye:'#fff06a', horn:'#e6c47a', accent:'#ffc94a', glow:'#ffb12e'},
+    {n:'Магма',    body:'#3a2a2e', belly:'#8a4228', wing:'#4a1a1a', light:'#ff7a2f', eye:'#ff6a2a', horn:'#2a1b1b', accent:'#ff5a1a', glow:'#ff4a14'} ]},
+  { id:'water', name:'Водный', el:'💧', col:'#3ab8ff', v:[
+    {n:'Лазурный',  body:'#2f86d6', belly:'#d9f0ff', wing:'#1f5fae', light:'#8fe0ff', eye:'#ffe56a', horn:'#bfe6ff', accent:'#46e0e0', glow:'#3ab8ff'},
+    {n:'Бирюзовый', body:'#1fb7a8', belly:'#e2fff6', wing:'#138a80', light:'#9ffff0', eye:'#fff29a', horn:'#c9fff3', accent:'#6cffd8', glow:'#2ee6c8'},
+    {n:'Глубинный', body:'#26409a', belly:'#8fb4ff', wing:'#16286b', light:'#6fa8ff', eye:'#6ffcff', horn:'#9fbfff', accent:'#4a8cff', glow:'#2f6bff'} ]},
+  { id:'nature', name:'Природный', el:'🌿', col:'#6fe04a', v:[
+    {n:'Изумрудный', body:'#4aa832', belly:'#efe7b2', wing:'#2f7a22', light:'#b6f06a', eye:'#ffe55a', horn:'#9a6b3a', accent:'#ff9fc8', glow:'#7bff5a'},
+    {n:'Мшистый',    body:'#7a8f35', belly:'#f0ecc0', wing:'#566a22', light:'#cfe27a', eye:'#ffd36b', horn:'#6b4a2a', accent:'#ffd86a', glow:'#b6d84a'},
+    {n:'Осенний',    body:'#c27a24', belly:'#ffe9b0', wing:'#8a4f14', light:'#ffcf6a', eye:'#9aff8a', horn:'#7a4a24', accent:'#ff6a3a', glow:'#ffb040'} ]},
+  { id:'light', name:'Светлый', el:'☀️', col:'#ffd54a', v:[
+    {n:'Золотой',    body:'#e8b92a', belly:'#fff3c8', wing:'#c8921a', light:'#fff0a8', eye:'#ff9a2a', horn:'#f6d45a', accent:'#fff3b0', glow:'#ffe27a'},
+    {n:'Жемчужный',  body:'#e2d4c4', belly:'#fff8f0', wing:'#c8b4b4', light:'#ffffff', eye:'#ff7aa8', horn:'#ffe6c2', accent:'#ffd0e8', glow:'#ffe8f4'},
+    {n:'Рассветный', body:'#f09a7a', belly:'#ffe3cf', wing:'#d0704a', light:'#ffd9a8', eye:'#a85aff', horn:'#ffd2a0', accent:'#ffe28a', glow:'#ffb88a'} ]},
+  { id:'shadow', name:'Теневой', el:'🌙', col:'#a14aff', v:[
+    {n:'Ночной',     body:'#2a2238', belly:'#5a4380', wing:'#1a1426', light:'#7a3fe0', eye:'#c76bff', horn:'#15101f', accent:'#a14aff', glow:'#8a3dff'},
+    {n:'Пепельный',  body:'#5f5f6f', belly:'#a9a9bb', wing:'#3a3a48', light:'#9a9ac0', eye:'#ff9d5c', horn:'#2f2f3a', accent:'#cfcfe8', glow:'#9a9ac0'},
+    {n:'Сумеречный', body:'#5a2a6e', belly:'#c68be0', wing:'#3a1a4a', light:'#c070f0', eye:'#7fffd4', horn:'#2a143a', accent:'#ff5ac8', glow:'#c34aff'} ]},
+  { id:'ice',   name:'Ледяной', el:'❄️', col:'#7fd6ff', v:[
+    {n:'Ледяной',  body:'#b4d4f0', belly:'#f4fbff', wing:'#6aa0d8', light:'#dff3ff', eye:'#2f9dff', horn:'#8ad0ff', accent:'#4fc3ff', glow:'#7fd6ff'},
+    {n:'Лунный',   body:'#b4aed8', belly:'#f1eefc', wing:'#7e76c0', light:'#e6e2ff', eye:'#b05aff', horn:'#c9c2ff', accent:'#d0b8ff', glow:'#c8c0ff'},
+    {n:'Полярный', body:'#86d8da', belly:'#f2ffff', wing:'#4aaab4', light:'#d0ffff', eye:'#ff7ac8', horn:'#aaf0ff', accent:'#38e0ff', glow:'#7ff0ff'} ]}
+];
+const STAGES = ['Малыш', 'Подросток', 'Взрослый', 'Легенда'];
+
+/* ===== Dragon renderer (SVG, side/3-4 view facing right) ===== */
+let UID = 0;
+const f1 = n => Math.round(n * 10) / 10;
+function hex2rgb(h){ const n=parseInt(h.slice(1),16); return [n>>16, (n>>8)&255, n&255]; }
+function rgb2hex(r,g,b){ const c=v=>Math.max(0,Math.min(255,Math.round(v))); return '#'+((1<<24)+(c(r)<<16)+(c(g)<<8)+c(b)).toString(16).slice(1); }
+function shade(hex, amt){ const [r,g,b]=hex2rgb(hex); return rgb2hex(r+amt,g+amt,b+amt); }
+function mix(a, b, t){ const A=hex2rgb(a), B=hex2rgb(b); return rgb2hex(A[0]+(B[0]-A[0])*t, A[1]+(B[1]-A[1])*t, A[2]+(B[2]-A[2])*t); }
+
+function spline(pts, closed){
+  const n = pts.length; let d = 'M' + f1(pts[0][0]) + ' ' + f1(pts[0][1]);
+  const get = i => closed ? pts[(i + n) % n] : pts[Math.max(0, Math.min(n - 1, i))];
+  const segs = closed ? n : n - 1;
+  for (let i = 0; i < segs; i++) {
+    const p0 = get(i - 1), p1 = get(i), p2 = get(i + 1), p3 = get(i + 2);
+    d += 'C' + f1(p1[0] + (p2[0] - p0[0]) / 6) + ' ' + f1(p1[1] + (p2[1] - p0[1]) / 6) + ' ' +
+         f1(p2[0] - (p3[0] - p1[0]) / 6) + ' ' + f1(p2[1] - (p3[1] - p1[1]) / 6) + ' ' + f1(p2[0]) + ' ' + f1(p2[1]);
+  }
+  return closed ? d + 'Z' : d;
+}
+function sample(pts, per){
+  const out = [], n = pts.length;
+  for (let i = 0; i < n - 1; i++) {
+    const p0 = pts[Math.max(0, i - 1)], p1 = pts[i], p2 = pts[i + 1], p3 = pts[Math.min(n - 1, i + 2)];
+    for (let k = 0; k < per; k++) {
+      const t = k / per, t2 = t * t, t3 = t2 * t;
+      out.push([
+        0.5 * (2 * p1[0] + (-p0[0] + p2[0]) * t + (2 * p0[0] - 5 * p1[0] + 4 * p2[0] - p3[0]) * t2 + (-p0[0] + 3 * p1[0] - 3 * p2[0] + p3[0]) * t3),
+        0.5 * (2 * p1[1] + (-p0[1] + p2[1]) * t + (2 * p0[1] - 5 * p1[1] + 4 * p2[1] - p3[1]) * t2 + (-p0[1] + 3 * p1[1] - 3 * p2[1] + p3[1]) * t3)]);
+    }
+  }
+  out.push(pts[n - 1]); return out;
+}
+function nrm(a, b){ const dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy) || 1; return [-dy / l, dx / l]; }
+// ribbon edges: returns {L:[...], R:[...], C:[...]} dense, with widths interpolated
+function edges(pts, ws, per){
+  const s = sample(pts, per || 6), m = s.length, L = [], R = [];
+  for (let i = 0; i < m; i++) {
+    const u = i / (m - 1) * (ws.length - 1), j = Math.min(ws.length - 2, Math.floor(u)), t = u - j;
+    const w = (ws[j] * (1 - t) + ws[j + 1] * t) / 2;
+    const nn = nrm(s[Math.max(0, i - 1)], s[Math.min(m - 1, i + 1)]);
+    L.push([s[i][0] + nn[0] * w, s[i][1] + nn[1] * w, nn[0], nn[1], w]);
+    R.push([s[i][0] - nn[0] * w, s[i][1] - nn[1] * w, -nn[0], -nn[1], w]);
+  }
+  return { C: s, L, R };
+}
+function ribbon(pts, ws, per, step){
+  const e = edges(pts, ws, per), st = step || 3, a = [], b = [];
+  for (let i = 0; i < e.L.length; i += st) { a.push(e.L[i]); b.push(e.R[i]); }
+  const last = e.L.length - 1;
+  if ((e.L.length - 1) % st) { a.push(e.L[last]); b.push(e.R[last]); }
+  return spline(a.concat(b.reverse()), true);
+}
+// shifted ribbon (for belly plates / highlights): k in [-1..1] of half-width
+function ribbonShift(pts, ws, k, ws2, per){
+  const e = edges(pts, ws, per || 6), c = [];
+  const side = k >= 0 ? e.L : e.R;
+  for (let i = 0; i < e.C.length; i++) { const w = side[i][4] * Math.abs(k); c.push([e.C[i][0] + side[i][2] * w, e.C[i][1] + side[i][3] * w]); }
+  const keys = []; for (let i = 0; i < c.length; i += 4) keys.push(c[i]); keys.push(c[c.length - 1]);
+  return ribbon(keys, ws2, 5);
+}
+function dist(a, b){ return Math.hypot(a[0] - b[0], a[1] - b[1]); }
+function lerp(a, b, t){ return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]; }
+function poly(pts){ return 'M' + pts.map(p => f1(p[0]) + ' ' + f1(p[1])).join('L') + 'Z'; }
+
+/* stage parameters */
+const SP = [
+  { s: 0.80, hx: 0.80, hs: 1.62, neck: 0.50, wing: 0.46, horn: 0.55, tail: 0.58, eye: 1.6, spikes: 0, leg: 0.9 },
+  { s: 0.90, hx: 0.9, hs: 1.34, neck: 0.78, wing: 0.74, horn: 0.82, tail: 0.82, eye: 1.28, spikes: 5, leg: 0.95 },
+  { s: 1.00, hx: 1, hs: 1.12, neck: 1.00, wing: 1.00, horn: 1.00, tail: 1.00, eye: 1.0, spikes: 9, leg: 1 },
+  { s: 1.04, hx: 1, hs: 1.18, neck: 1.06, wing: 1.2,  horn: 1.3,  tail: 1.12, eye: 1.0, spikes: 13, leg: 1 }
+];
+const VB = '-34 -8 372 316';
+
+function wingShape(o, ctx){
+  const k = o.k, sh = o.sh;
+  const tr = p => [sh[0] + (p[0] - sh[0]) * k, sh[1] + (p[1] - sh[1]) * k];
+  const el = tr(o.el), wr = tr(o.wr), tips = o.tips.map(tr), bk = tr(o.back);
+  let d = 'M' + f1(sh[0]) + ' ' + f1(sh[1]) + 'L' + f1(el[0]) + ' ' + f1(el[1]) + 'L' + f1(wr[0]) + ' ' + f1(wr[1]) + 'L' + f1(tips[0][0]) + ' ' + f1(tips[0][1]);
+  const chain = tips.concat([bk]);
+  for (let i = 0; i < chain.length - 1; i++) {
+    const a = chain[i], b = chain[i + 1], m = lerp(a, b, 0.5), c = lerp(m, wr, i === chain.length - 2 ? 0.22 : 0.3);
+    d += 'Q' + f1(c[0]) + ' ' + f1(c[1]) + ' ' + f1(b[0]) + ' ' + f1(b[1]);
+  }
+  d += 'Z';
+  let s = '<path d="' + d + '" fill="url(#' + ctx.id + o.grad + ')" stroke="' + ctx.wline + '" stroke-width="1.6" stroke-linejoin="round"/>';
+  // folds
+  let folds = '';
+  for (let i = 0; i < chain.length - 1; i++) {
+    const a = chain[i], b = chain[i + 1], m = lerp(a, b, 0.5), c = lerp(m, wr, 0.3);
+    folds += 'M' + f1(wr[0]) + ' ' + f1(wr[1]) + 'Q' + f1(lerp(wr, c, 0.6)[0]) + ' ' + f1(lerp(wr, c, 0.6)[1]) + ' ' + f1(c[0]) + ' ' + f1(c[1]);
+  }
+  s += '<path d="' + folds + '" stroke="' + ctx.wline + '" stroke-width="1" fill="none" opacity=".22"/>';
+  // bones
+  const bone = ctx.bone;
+  s += '<path d="' + ribbon([sh, el, wr], [13, 9, 6], 6) + '" fill="' + bone + '" stroke="' + ctx.wline + '" stroke-width="1.3"/>';
+  tips.forEach((t, i) => {
+    const m = lerp(wr, t, 0.5), bend = [m[0] + (wr[1] - t[1]) * 0.06, m[1] + (t[0] - wr[0]) * 0.06];
+    s += '<path d="' + ribbon([wr, bend, t], [i === 0 ? 7 : 5, 3.5, 1.2], 6) + '" fill="' + bone + '" stroke="' + ctx.wline + '" stroke-width="1"/>';
+  });
+  // wrist claw
+  const cl = [[wr[0] - 3, wr[1] - 1], [wr[0] + 5 * (o.dir || 1), wr[1] - 16 * k], [wr[0] + 5, wr[1] + 3]];
+  s += '<path d="' + poly(cl) + '" fill="' + ctx.claw + '" stroke="' + ctx.wline + '" stroke-width="1"/>';
+  return { svg: s, wr, tips, bk, el };
+}
+
+function dragonSVG(d, stage, opts){
+  opts = opts || {};
+  const B = BREEDS[d.b], V = B.v[d.v], R = RARITY[d.r], P = SP[stage];
+  const id = 'd' + (++UID) + '_';
+  const body = V.body, belly = V.belly, line = shade(body, -62), wline = shade(V.wing, -50);
+  const translucent = (B.id === 'water' || B.id === 'ice' || B.id === 'shadow');
+  const ctx = { id, wline, bone: mix(V.wing, body, 0.35), claw: shade(V.horn, -10) };
+  let s = '<svg viewBox="' + VB + '" xmlns="http://www.w3.org/2000/svg" class="dsvg' + (d.r === 4 ? ' myth' : '') + '"><defs>' +
+    '<linearGradient id="' + id + 'b" x1="0" y1="0" x2="0.25" y2="1"><stop offset="0" stop-color="' + shade(body, 46) + '"/><stop offset=".5" stop-color="' + body + '"/><stop offset="1" stop-color="' + shade(body, -42) + '"/></linearGradient>' +
+    '<linearGradient id="' + id + 'l" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + belly + '"/><stop offset="1" stop-color="' + shade(belly, -34) + '"/></linearGradient>' +
+    '<linearGradient id="' + id + 'w" x1="1" y1="0.8" x2="0" y2="0.1"><stop offset="0" stop-color="' + mix(V.wing, body, 0.4) + '" stop-opacity="' + (translucent ? .88 : 1) + '"/><stop offset=".55" stop-color="' + V.light + '" stop-opacity="' + (translucent ? .62 : .95) + '"/><stop offset="1" stop-color="' + shade(V.light, 24) + '" stop-opacity="' + (translucent ? .45 : .9) + '"/></linearGradient>' +
+    '<linearGradient id="' + id + 'v" x1="0" y1="0.8" x2="1" y2="0.1"><stop offset="0" stop-color="' + mix(V.wing, body, 0.4) + '" stop-opacity="' + (translucent ? .88 : 1) + '"/><stop offset=".55" stop-color="' + shade(V.light, -22) + '" stop-opacity="' + (translucent ? .55 : .92) + '"/><stop offset="1" stop-color="' + V.light + '" stop-opacity="' + (translucent ? .4 : .85) + '"/></linearGradient>' +
+    '<pattern id="' + id + 's" width="10" height="8" patternUnits="userSpaceOnUse"><path d="M0 8Q5 1 10 8M-5 4Q0-3 5 4M5 4Q10-3 15 4" stroke="' + line + '" stroke-width="1.1" fill="none" opacity=".5"/></pattern>' +
+    '<radialGradient id="' + id + 'g"><stop offset="0" stop-color="' + V.glow + '" stop-opacity=".55"/><stop offset="1" stop-color="' + V.glow + '" stop-opacity="0"/></radialGradient>' +
+    '<radialGradient id="' + id + 'r"><stop offset="0" stop-color="' + R.color + '" stop-opacity=".6"/><stop offset="1" stop-color="' + R.color + '" stop-opacity="0"/></radialGradient>' +
+    '</defs>';
+
+  /* --- aura & particles (outside stage transform) --- */
+  s += '<circle cx="150" cy="150" r="' + (stage === 3 ? 170 : 140) + '" fill="url(#' + id + 'g)" opacity="' + (stage === 3 ? 1 : .55) + '"/>';
+  if (d.r >= 2) s += '<circle cx="150" cy="150" r="' + (d.r >= 3 ? 165 : 140) + '" fill="url(#' + id + 'r)"/>';
+  s += particles(B.id, V, stage, d.r);
+
+  s += '<g transform="translate(150 272) scale(' + P.s + ') translate(-150 -272)">';
+
+  /* --- geometry --- */
+  const hip = [98, 226];
+  const tailPts = [[98, 226], [74, 252], [102, 276], [158, 282], [216, 272], [250, 246], [254, 218]]
+    .map(p => [hip[0] + (p[0] - hip[0]) * P.tail, 272 - (272 - p[1]) * (0.6 + 0.4 * P.tail)]);
+  const tailW = [38, 34, 28, 21, 14, 8, 3.5];
+  const neckBase = [158, 186];
+  const neckAdult = [[158, 186], [178, 158], [178, 124], [190, 96], [212, 82]];
+  const neck = neckAdult.map(p => [neckBase[0] + (p[0] - neckBase[0]) * P.neck, neckBase[1] + (p[1] - neckBase[1]) * P.neck]);
+  const neckW = [54, 46, 38, 33, 30];
+  const nEnd = neck[neck.length - 1];
+  const head = [nEnd[0] + 9 * P.hs, nEnd[1] - 11 * P.hs];
+  const bodyPts = [[180, 204], [168, 242], [132, 256], [98, 250], [76, 226], [80, 192], [112, 170], [148, 162], [174, 174]];
+
+  /* wings */
+  const wk = P.wing;
+  const wingNear = { sh: [150, 168], el: [124, 118], wr: [104, 66], tips: [[40, 24], [24, 82], [36, 138], [76, 182]], back: [112, 204], k: wk, grad: 'w', dir: -1 };
+  const wingFar = { sh: [166, 164], el: [186, 112], wr: [196, 66], tips: [[256, 22], [290, 66], [288, 118], [250, 170]], back: [190, 200], k: wk * 0.92, grad: 'v', dir: 1 };
+  const wFar = wingShape(wingFar, ctx), wNear = wingShape(wingNear, ctx);
+  s += '<g opacity=".95" filter="brightness(.9)">' + wFar.svg + '</g>';
+  s += wNear.svg;
+  s += wingExtras(B.id, V, [wNear, wFar], wk, translucent);
+
+  /* tail */
+  s += '<path d="' + ribbon(tailPts, tailW.map(w => w * (0.75 + 0.25 * P.tail)), 6) + '" fill="url(#' + id + 'b)" stroke="' + line + '" stroke-width="2"/>';
+  s += '<path d="' + ribbon(tailPts, tailW.map(w => w * (0.75 + 0.25 * P.tail)), 6) + '" fill="url(#' + id + 's)" opacity=".55"/>';
+  s += '<path d="' + ribbonShift(tailPts, tailW, -0.55, [10, 8, 6, 4, 2.4, 1]) + '" fill="url(#' + id + 'l)" opacity=".9"/>';
+  s += tailTip(B.id, V, tailPts[tailPts.length - 1], P);
+
+  /* body */
+  const bodyD = spline(bodyPts, true);
+  s += '<path d="' + bodyD + '" fill="url(#' + id + 'b)" stroke="' + line + '" stroke-width="2"/>';
+  s += '<path d="' + bodyD + '" fill="url(#' + id + 's)" opacity=".5"/>';
+  // hind leg
+  const thigh = [[78, 202], [108, 196], [132, 214], [130, 242], [104, 254], [82, 238]];
+  s += '<path d="' + spline(thigh, true) + '" fill="url(#' + id + 'b)" stroke="' + line + '" stroke-width="2"/>';
+  s += '<path d="' + spline(thigh, true) + '" fill="url(#' + id + 's)" opacity=".55"/>';
+  const foot = [[100, 260], [126, 256], [148, 266], [146, 275], [102, 276]];
+  s += '<path d="' + spline(foot, true) + '" fill="' + shade(body, -8) + '" stroke="' + line + '" stroke-width="2"/>';
+  s += claws([[138, 272], [146, 268], [150, 272]], V, 3, [[1, 0.6]]);
+
+  /* spikes along back (behind neck) */
+  s += spikesAlong(B.id, V, neck, neckW, tailPts, P, id);
+
+  /* neck */
+  const neckD = ribbon(neck, neckW.map(w => w * 0.98), 6);
+  s += '<path d="' + neckD + '" fill="url(#' + id + 'b)" stroke="' + line + '" stroke-width="2"/>';
+  s += '<path d="' + neckD + '" fill="url(#' + id + 's)" opacity=".5"/>';
+  // belly plates (front of neck & chest)
+  const bel = ribbonShift(neck, neckW, 0.58, [13, 11, 9, 8, 7]);
+  s += '<path d="' + bel + '" fill="url(#' + id + 'l)" stroke="' + shade(belly, -60) + '" stroke-width="1" opacity=".96"/>';
+  s += plates(neck, neckW, belly);
+  // chest belly
+  s += '<path d="' + spline([[170, 196], [176, 222], [160, 244], [140, 246], [150, 222]], true) + '" fill="url(#' + id + 'l)" stroke="' + shade(belly, -60) + '" stroke-width="1"/>';
+  // rim light on neck / body
+  s += '<path d="' + ribbonShift(neck, neckW, -0.78, [4, 3.5, 3, 2.5, 2]) + '" fill="#fff" opacity=".22"/>';
+  s += '<path d="' + spline([[100, 190], [126, 174], [152, 168]], false) + '" stroke="#fff" stroke-width="4" stroke-linecap="round" fill="none" opacity=".18"/>';
+
+  /* front leg */
+  const fl = [[166, 198], [182, 232], [194, 262]];
+  const legW = [26, 19, 15].map(w => w * P.leg);
+  s += '<path d="' + ribbon(fl, legW, 6) + '" fill="url(#' + id + 'b)" stroke="' + line + '" stroke-width="2"/>';
+  s += '<path d="' + ribbon(fl, legW, 6) + '" fill="url(#' + id + 's)" opacity=".5"/>';
+  const paw = [[184, 258], [212, 258], [226, 268], [222, 276], [182, 277]];
+  s += '<path d="' + spline(paw, true) + '" fill="' + shade(body, -6) + '" stroke="' + line + '" stroke-width="2"/>';
+  s += claws([[214, 273], [222, 270], [228, 275]], V, 3);
+
+  /* head */
+  s += headSVG(B, V, d, head, P, ctx, stage);
+
+  s += '</g>';
+  // accessories drawn in same stage transform
+  if (d.acc && typeof accessoriesSVG === 'function') {
+    const hs = P.hs;
+    s += '<g transform="translate(150 272) scale(' + P.s + ') translate(-150 -272)">' + accessoriesSVG(d.acc, { head, P, neck, nEnd, neckW, stage }) + '</g>';
+  }
+  if (stage === 3) s += halo(V, R, head, P);
+  s += '</svg>';
+  return s;
+}
+
+function claws(pts, V, n, extra){
+  let s = '';
+  pts.forEach(p => { s += '<path d="' + poly([[p[0] - 2.2, p[1] - 1], [p[0] + 3.6, p[1] + 4.5], [p[0] + 2.6, p[1] - 3]]) + '" fill="' + shade(V.horn, 14) + '" stroke="' + shade(V.horn, -70) + '" stroke-width=".8"/>'; });
+  return s;
+}
+function plates(neck, neckW, belly){
+  const e = edges(neck, neckW, 6); let s = '';
+  const m = e.C.length;
+  for (let i = 3; i < m - 3; i += 3) {
+    const a = e.C[i], nn = e.L[i], w = nn[4] * 0.62;
+    const cx = a[0] + nn[2] * nn[4] * 0.58, cy = a[1] + nn[3] * nn[4] * 0.58;
+    s += '<path d="M' + f1(cx - nn[2] * w * 0.9) + ' ' + f1(cy - nn[3] * w * 0.9) + 'L' + f1(cx + nn[2] * w * 0.9) + ' ' + f1(cy + nn[3] * w * 0.9) + '" stroke="' + shade(belly, -70) + '" stroke-width="1" opacity=".5"/>';
+  }
+  return s;
+}
+function halo(V, R, head, P){
+  const gx = 150 + (head[0] - 150) * P.s, gy = 272 + (head[1] - 272) * P.s, cx = gx - 6, cy = gy - 52 * P.s;
+  return '<ellipse cx="' + f1(cx) + '" cy="' + f1(cy) + '" rx="30" ry="8" fill="none" stroke="' + R.color + '" stroke-width="4" opacity=".95" transform="rotate(-6 ' + f1(cx) + ' ' + f1(cy) + ')"/>' +
+         '<ellipse cx="' + f1(cx) + '" cy="' + f1(cy) + '" rx="30" ry="8" fill="none" stroke="#fff" stroke-width="1.3" opacity=".85" transform="rotate(-6 ' + f1(cx) + ' ' + f1(cy) + ')"/>';
+}
+
+/* ===== head, horns, wing & tail decorations, spikes, particles ===== */
+function headSVG(B, V, d, head, P, ctx, stage){
+  const id = ctx.id, body = V.body, line = shade(body, -62), bid = B.id;
+  const hk = P.horn;
+  const skull = [[-24, -2], [-16, -17], [2, -23], [20, -18], [36, -11], [54, -4], [60, 4], [54, 10], [42, 12], [46, 17], [34, 24], [12, 27], [-8, 22], [-20, 12]];
+  let s = '<g transform="translate(' + f1(head[0]) + ' ' + f1(head[1]) + ') rotate(6) scale(' + f1(P.hs * P.hx) + ' ' + P.hs + ')">';
+  s += hornsFor(bid, V, hk, line);
+  // jaw frill / ear spikes
+  if (bid !== 'water') {
+    const fc = bid === 'fire' ? V.accent : shade(V.horn, 0);
+    s += '<path d="' + poly([[-14, 4], [-38, -2], [-20, 14]]) + '" fill="' + fc + '" stroke="' + line + '" stroke-width="1.3" stroke-linejoin="round"/>' +
+         '<path d="' + poly([[-10, 13], [-34, 16], [-14, 24]]) + '" fill="' + fc + '" stroke="' + line + '" stroke-width="1.3" stroke-linejoin="round"/>';
+  } else {
+    s += '<path d="M-12 6Q-34-4-48 4Q-34 8-30 14Q-24 12-12 14Z" fill="' + V.light + '" opacity=".85" stroke="' + V.wing + '" stroke-width="1.3"/>' +
+         '<path d="M-14 8L-40 6M-14 11L-36 12" stroke="' + V.wing + '" stroke-width="1" opacity=".6"/>';
+  }
+  const skD = spline(skull, true);
+  s += '<path d="' + skD + '" fill="url(#' + id + 'b)" stroke="' + line + '" stroke-width="2.2"/>';
+  s += '<path d="' + skD + '" fill="url(#' + id + 's)" opacity=".45"/>';
+  // muzzle & chin
+  s += '<path d="' + spline([[30, -10], [54, -4], [60, 4], [54, 10], [40, 12], [30, 6]], true) + '" fill="' + shade(body, 22) + '" opacity=".55"/>';
+  s += '<path d="' + spline([[14, 20], [34, 22], [44, 18], [30, 26], [12, 27]], true) + '" fill="' + V.belly + '" opacity=".9"/>';
+  // mouth
+  s += '<path d="M58 9Q42 15 24 15Q14 15 8 21" stroke="' + shade(body, -78) + '" stroke-width="1.8" fill="none" stroke-linecap="round"/>';
+  if (stage >= 1) for (let i = 0; i < 3; i++) { const x = 52 - i * 7; s += '<path d="' + poly([[x - 1.6, 10.6], [x + 1.6, 10.8], [x + 0.2, 14.4]]) + '" fill="#fff" stroke="' + line + '" stroke-width=".5"/>'; }
+  // nostril
+  s += '<ellipse cx="54" cy="0" rx="2.4" ry="1.5" fill="' + shade(body, -80) + '" transform="rotate(20 54 0)"/>';
+  // brow
+  s += '<path d="M2-16Q16-23 32-12" stroke="' + shade(body, -30) + '" stroke-width="' + (stage === 0 ? 3 : 4.6) + '" fill="none" stroke-linecap="round"/>';
+  // eye
+  const E = 1 + (P.eye - 1) * 0.55, ex = 15, ey = -7;
+  const rx = 6.2 * E, ry = (4.7 + (E - 1) * 5.5);
+  s += '<ellipse cx="' + ex + '" cy="' + ey + '" rx="' + f1(rx * 1.5) + '" ry="' + f1(ry * 1.6) + '" fill="' + V.glow + '" opacity="' + (d.r >= 2 ? .45 : .2) + '"/>';
+  s += '<ellipse cx="' + ex + '" cy="' + ey + '" rx="' + f1(rx) + '" ry="' + f1(ry) + '" fill="' + V.eye + '" stroke="' + shade(body, -85) + '" stroke-width="1.6" transform="rotate(-10 ' + ex + ' ' + ey + ')"/>';
+  s += '<ellipse cx="' + (ex + 0.8) + '" cy="' + ey + '" rx="' + f1(1.7 * E) + '" ry="' + f1(ry * 0.84) + '" fill="#1a1020" transform="rotate(-10 ' + ex + ' ' + ey + ')"/>';
+  s += '<circle cx="' + f1(ex - rx * 0.32) + '" cy="' + f1(ey - ry * 0.4) + '" r="' + f1(1.5 * E) + '" fill="#fff" opacity=".95"/>';
+  if (stage === 0) s += '<circle cx="' + (ex + 6) + '" cy="' + (ey + 4) + '" r="1.1" fill="#fff" opacity=".8"/><ellipse cx="38" cy="10" rx="5" ry="2.6" fill="#ff8aa0" opacity=".35"/>';
+  // forehead gem for legend
+  if (stage === 3) s += '<path d="' + poly([[3, -17], [8, -12], [3, -7], [-2, -12]]) + '" fill="' + RARITY[d.r].color + '" stroke="#fff" stroke-width="1.2"/>';
+  if (d.r === 4) s += '<path d="M-6-20L-10-34L-2-27L4-38L9-26L17-33L12-19Z" fill="#ffd24a" stroke="#b9801a" stroke-width="1.4" stroke-linejoin="round"/>';
+  s += '</g>';
+  return s;
+}
+function hornsFor(bid, V, k, line){
+  const sc = p => [p[0] * k, p[1] * k];
+  const rb = (pts, ws, fill, extra) => '<path d="' + ribbon(pts.map(sc), ws.map(w => w * (0.5 + 0.5 * k)), 6) + '" fill="' + fill + '" stroke="' + line + '" stroke-width="1.5"' + (extra || '') + '/>';
+  let s = '';
+  if (bid === 'fire') {
+    s += rb([[-4, -20], [-18, -36], [-38, -44], [-56, -38]], [11, 8, 4.5, 1.2], V.horn);
+    s += rb([[-14, -10], [-30, -20], [-46, -18]], [8, 5, 1.2], shade(V.horn, -16));
+    s += '<path d="M-10-29Q-14-31-17-29M-22-37Q-27-38-30-35M-34-41Q-37-41-41-38" stroke="' + shade(V.horn, -60) + '" stroke-width="1.2" fill="none" opacity=".7" transform="scale(' + k + ')"/>';
+    s += '<g transform="scale(' + k + ')"><path d="' + poly([[-16, -14], [-30, -6], [-18, -4]]) + '" fill="' + V.accent + '" stroke="' + line + '" stroke-width="1"/><path d="' + poly([[-12, -18], [-22, -30], [-6, -22]]) + '" fill="' + V.accent + '" stroke="' + line + '" stroke-width="1"/></g>';
+  } else if (bid === 'water') {
+    const fin = (d, rays) => '<g transform="scale(' + k + ')"><path d="' + d + '" fill="' + V.light + '" opacity=".88" stroke="' + V.wing + '" stroke-width="1.4"/><path d="' + rays + '" stroke="' + V.wing + '" stroke-width="1" opacity=".55" fill="none"/></g>';
+    s += fin('M-6-20Q-16-52-46-52Q-32-38-30-24Z', 'M-8-22L-38-48M-10-22L-32-36');
+    s += fin('M-14-8Q-30-28-56-24Q-40-14-32-4Z', 'M-16-8L-48-22M-18-6L-40-12');
+    s += '<g transform="scale(' + k + ')"><path d="' + poly([[8, -22], [14, -34], [20, -22]]) + '" fill="' + V.accent + '" stroke="' + V.wing + '" stroke-width="1.2" opacity=".95"/></g>';
+  } else if (bid === 'nature') {
+    s += rb([[-2, -20], [-8, -38], [-20, -54], [-26, -72]], [9, 7, 4.5, 1.5], V.horn);
+    s += rb([[-8, -38], [-22, -42], [-36, -40]], [5, 3, 1], V.horn);
+    s += rb([[-16, -50], [-8, -62], [-6, -76]], [4, 2.5, 1], V.horn);
+    s += '<g transform="scale(' + k + ')" fill="' + shade(V.light, -8) + '" stroke="' + V.wing + '" stroke-width="1"><ellipse cx="-38" cy="-42" rx="7" ry="3.4" transform="rotate(-20 -38 -42)"/><ellipse cx="-28" cy="-76" rx="6" ry="3" transform="rotate(-60 -28 -76)"/><ellipse cx="-4" cy="-78" rx="6" ry="3" transform="rotate(50 -4 -78)"/></g>';
+    s += '<g transform="scale(' + k + ')"><circle cx="-18" cy="-47" r="3.6" fill="' + V.accent + '" stroke="#fff" stroke-width=".8"/><circle cx="-6" cy="-38" r="2.8" fill="#fff" stroke="' + V.accent + '" stroke-width=".8"/></g>';
+  } else if (bid === 'light') {
+    s += rb([[-4, -20], [-20, -36], [-44, -42], [-72, -30]], [11, 8, 4, 1], V.horn);
+    s += rb([[-12, -10], [-34, -14], [-56, -6]], [8, 5, 1], shade(V.horn, -14));
+    [[-18, -4, -52, -14], [-18, 4, -54, 6], [-16, 12, -46, 24]].forEach(f => {
+      s += '<g transform="scale(' + k + ')"><path d="' + ribbon([[f[0], f[1]], [(f[0] + f[2]) / 2, (f[1] + f[3]) / 2 - 3], [f[2], f[3]]], [8, 5, 1], 5) + '" fill="' + V.light + '" stroke="' + shade(V.horn, -40) + '" stroke-width="1"/></g>';
+    });
+  } else if (bid === 'shadow') {
+    s += rb([[-2, -20], [-12, -40], [-30, -56], [-54, -58]], [11, 8, 4, 1], V.horn);
+    s += rb([[-14, -10], [-32, -24], [-52, -26]], [8, 5, 1], shade(V.horn, 14));
+    s += '<g transform="scale(' + k + ')"><path d="' + poly([[-14, -34], [-26, -34], [-18, -42]]) + '" fill="' + V.accent + '" opacity=".9"/><path d="' + poly([[-26, -48], [-36, -46], [-30, -56]]) + '" fill="' + V.accent + '" opacity=".9"/></g>';
+    s += '<path d="M-40-50Q-60-70-48-86Q-52-70-38-62" fill="' + V.accent + '" opacity=".35" transform="scale(' + k + ')"/>';
+  } else { // ice
+    const shard = (pts, f) => '<g transform="scale(' + k + ')"><path d="' + poly(pts) + '" fill="' + V.horn + '" opacity=".92" stroke="' + V.wing + '" stroke-width="1.4" stroke-linejoin="round"/><path d="' + poly(f) + '" fill="#fff" opacity=".5"/></g>';
+    s += shard([[-6, -20], [-18, -60], [4, -26]], [[-6, -20], [-18, -60], [-8, -30]]);
+    s += shard([[-14, -14], [-44, -42], [-22, -6]], [[-14, -14], [-44, -42], [-28, -16]]);
+    s += shard([[2, -22], [8, -54], [14, -22]], [[2, -22], [8, -54], [8, -24]]);
+  }
+  return s;
+}
+function wingExtras(bid, V, wings, k, translucent){
+  let s = '';
+  wings.forEach((w, wi) => {
+    const dim = wi === 1 ? 0.8 : 1;
+    if (bid === 'fire') {
+      w.tips.forEach((t, i) => { s += '<path d="M' + f1(t[0]) + ' ' + f1(t[1]) + 'c-3-6 1-9 0-15c5 4 7 9 3 15z" fill="' + V.accent + '" opacity="' + (0.85 * dim) + '"/><circle cx="' + f1(t[0] + (i % 2 ? 6 : -6)) + '" cy="' + f1(t[1] - 10 - i * 3) + '" r="1.8" fill="#ffe08a" class="tw" style="animation-delay:' + i * .3 + 's"/>'; });
+    } else if (bid === 'water') {
+      for (let i = 0; i < 4; i++) { const p = lerp(w.wr, lerp(w.tips[i], w.tips[Math.min(3, i + 1)], 0.5), 0.55); s += '<circle cx="' + f1(p[0]) + '" cy="' + f1(p[1]) + '" r="' + (3 - i * 0.4) + '" fill="#fff" opacity=".28" stroke="#fff" stroke-width=".8"/><circle cx="' + f1(p[0] - 1) + '" cy="' + f1(p[1] - 1) + '" r=".9" fill="#fff"/>'; }
+    } else if (bid === 'nature') {
+      w.tips.forEach((t, i) => { [0.35, 0.62, 0.88].forEach((q, j) => { const p = lerp(w.wr, t, q); s += '<ellipse cx="' + f1(p[0]) + '" cy="' + f1(p[1]) + '" rx="' + (6 - j) + '" ry="' + (3 - j * 0.4) + '" fill="' + shade(V.light, -14 + j * 8) + '" stroke="' + V.wing + '" stroke-width=".8" transform="rotate(' + (i * 40 - 30 + j * 25) + ' ' + f1(p[0]) + ' ' + f1(p[1]) + ')"/>'; }); });
+      s += '<circle cx="' + f1(w.tips[1][0] + 4) + '" cy="' + f1(w.tips[1][1] + 6) + '" r="3.4" fill="#fff" stroke="' + V.accent + '" stroke-width="1.4"/>';
+    } else if (bid === 'ice') {
+      for (let i = 0; i < 3; i++) { const a = lerp(w.wr, w.tips[i], 0.62), b = lerp(w.wr, w.tips[i + 1], 0.62); s += '<path d="M' + f1(a[0]) + ' ' + f1(a[1]) + 'L' + f1(b[0]) + ' ' + f1(b[1]) + 'L' + f1((a[0] + b[0]) / 2 + (w.wr[0] - a[0]) * 0.2) + ' ' + f1((a[1] + b[1]) / 2 + (w.wr[1] - a[1]) * 0.2) + 'Z" fill="#fff" opacity=".22" stroke="#fff" stroke-width=".8"/>'; }
+      s += '<path d="' + poly([[w.wr[0] - 3, w.wr[1] + 2], [w.wr[0], w.wr[1] - 14], [w.wr[0] + 5, w.wr[1] + 2]]) + '" fill="' + V.horn + '" opacity=".9" stroke="' + V.wing + '"/>';
+    } else if (bid === 'light') {
+      w.tips.forEach((t, i) => { s += '<path d="M' + f1(w.wr[0]) + ' ' + f1(w.wr[1]) + 'L' + f1(lerp(w.wr, t, 0.9)[0]) + ' ' + f1(lerp(w.wr, t, 0.9)[1]) + '" stroke="#fff" stroke-width="1.6" opacity=".42" stroke-linecap="round"/>'; });
+    } else { // shadow
+      w.tips.forEach((t, i) => { s += '<path d="M' + f1(w.wr[0]) + ' ' + f1(w.wr[1]) + 'L' + f1(lerp(w.wr, t, 0.8)[0]) + ' ' + f1(lerp(w.wr, t, 0.8)[1]) + '" stroke="' + V.accent + '" stroke-width="1.6" opacity=".75" stroke-linecap="round"/>'; });
+      const t = w.tips[2]; s += '<path d="M' + f1(t[0]) + ' ' + f1(t[1]) + 'q-8 -14 4 -24q-2 10 8 14z" fill="' + V.accent + '" opacity=".4"/>';
+    }
+  });
+  return s;
+}
+function tailTip(bid, V, p, P){
+  const k = 0.8 + 0.2 * P.tail; const g = (inner) => '<g transform="translate(' + f1(p[0]) + ' ' + f1(p[1]) + ') scale(' + k + ')">' + inner + '</g>';
+  if (bid === 'fire') return g('<path d="M-4 4C-14-6-8-16 2-24C4-14 12-10 8 2Z" fill="' + V.accent + '"/><path d="M-1 3C-7-4-3-10 2-15C4-9 8-6 5 3Z" fill="#ffe27a"/>');
+  if (bid === 'water') return g('<path d="M0 0Q-10-18 8-26Q8-14 18-10Q10-2 0 0Z" fill="' + V.light + '" opacity=".9" stroke="' + V.wing + '" stroke-width="1.4"/><path d="M2-2L10-20M2-2L14-12" stroke="' + V.wing + '" stroke-width="1" opacity=".5"/>');
+  if (bid === 'nature') return g('<path d="M0 0Q-12-16 4-26Q14-14 0 0Z" fill="#59c640" stroke="#2f7a22" stroke-width="1.3"/><path d="M2 0Q16-8 22-22Q8-22 2 0Z" fill="#7fe04a" stroke="#2f7a22" stroke-width="1.3"/><circle cx="-4" cy="-24" r="3.5" fill="' + V.accent + '" stroke="#fff" stroke-width=".8"/>');
+  if (bid === 'ice') return g('<path d="' + poly([[-3, 4], [-6, -20], [4, -8]]) + '" fill="' + V.horn + '" stroke="' + V.wing + '" stroke-width="1.2"/><path d="' + poly([[2, 4], [10, -24], [14, -2]]) + '" fill="#fff" opacity=".8" stroke="' + V.wing + '" stroke-width="1.2"/>');
+  if (bid === 'light') return g('<path d="M0 0L-8-14L0-26L8-14Z" fill="' + V.horn + '" stroke="' + shade(V.horn, -70) + '" stroke-width="1.2"/><path d="M0-6L-3-14L0-20L3-14Z" fill="#fff" opacity=".7"/>');
+  return g('<path d="M0 2Q-14-8-4-22Q-4-10 6-8Q16-6 0 2Z" fill="' + V.accent + '" opacity=".7"/><path d="M2 2Q10-10 20-8Q10-4 2 2Z" fill="' + V.accent + '" opacity=".5"/>');
+}
+function spikeSVG(bid, V, x, y, nx, ny, sz, body){
+  const tx = x + nx * sz, ty = y + ny * sz, px = -ny * sz * 0.38, py = nx * sz * 0.38;
+  if (bid === 'nature') return '<path d="M' + f1(x - px) + ' ' + f1(y - py) + 'Q' + f1(x + nx * sz * 0.7 - px * 2.2) + ' ' + f1(y + ny * sz * 0.7 - py * 2.2) + ' ' + f1(tx) + ' ' + f1(ty) + 'Q' + f1(x + nx * sz * 0.7 + px * 2.2) + ' ' + f1(y + ny * sz * 0.7 + py * 2.2) + ' ' + f1(x + px) + ' ' + f1(y + py) + 'Z" fill="#59c640" stroke="#2f7a22" stroke-width="1"/>';
+  const fill = bid === 'fire' ? V.accent : bid === 'water' ? V.light : bid === 'ice' ? V.horn : bid === 'light' ? V.horn : shade(body, -26);
+  const stroke = bid === 'water' ? V.wing : shade(fill, -70);
+  let s = '<path d="' + poly([[x - px, y - py], [tx, ty], [x + px, y + py]]) + '" fill="' + fill + '" stroke="' + stroke + '" stroke-width="1" stroke-linejoin="round"' + (bid === 'water' ? ' opacity=".9"' : '') + '/>';
+  if (bid === 'ice') s += '<path d="' + poly([[x - px, y - py], [tx, ty], [x, y]]) + '" fill="#fff" opacity=".45"/>';
+  if (bid === 'shadow') s += '<path d="' + poly([[x - px * 0.4 + nx * sz * 0.6, y - py * 0.4 + ny * sz * 0.6], [tx, ty], [x + px * 0.4 + nx * sz * 0.6, y + py * 0.4 + ny * sz * 0.6]]) + '" fill="' + V.accent + '" opacity=".9"/>';
+  return s;
+}
+function spikesAlong(bid, V, neck, neckW, tailPts, P, id){
+  if (!P.spikes) return '';
+  const e = edges(neck, neckW, 5), pts = [];
+  for (let i = e.R.length - 1; i >= 0; i -= 2) pts.push({ x: e.R[i][0], y: e.R[i][1], nx: e.R[i][2], ny: e.R[i][3], t: 0 });
+  const bp = sample([[160, 168], [130, 172], [104, 184], [86, 204]], 5);
+  for (let i = 0; i < bp.length; i += 2) { const n = nrm(bp[Math.max(0, i - 1)], bp[Math.min(bp.length - 1, i + 1)]); pts.push({ x: bp[i][0], y: bp[i][1], nx: n[0], ny: n[1], t: 0 }); }
+  const te = edges(tailPts.slice(0, 3), [30, 26, 18], 5);
+  for (let i = 0; i < te.L.length; i += 2) pts.push({ x: te.L[i][0], y: te.L[i][1], nx: te.L[i][2], ny: te.L[i][3] });
+  const n = P.spikes, body = V.body; let s = '';
+  for (let i = 0; i < n; i++) {
+    const q = pts[Math.round(i / Math.max(1, n - 1) * (pts.length - 1))], u = i / Math.max(1, n - 1);
+    const sz = (11 - 6 * Math.abs(u - 0.3)) * (0.7 + 0.3 * P.s) ;
+    s += spikeSVG(bid, V, q.x, q.y, q.nx, q.ny, Math.max(5, sz), body);
+  }
+  return s;
+}
+function particles(bid, V, stage, rar){
+  const pos = [[18, 70], [318, 44], [330, 170], [4, 200], [64, 14], [286, 110], [34, 262], [316, 250], [150, 6]];
+  const n = 3 + stage * 2 + (rar >= 3 ? 2 : 0); let s = '';
+  for (let i = 0; i < Math.min(n, pos.length); i++) {
+    const p = pos[i], st = 'animation-delay:' + (i * 0.37) + 's';
+    if (bid === 'fire') s += '<circle class="tw" style="' + st + '" cx="' + p[0] + '" cy="' + p[1] + '" r="' + (2 + (i % 3)) + '" fill="' + V.accent + '"/>';
+    else if (bid === 'water') s += '<circle class="tw" style="' + st + '" cx="' + p[0] + '" cy="' + p[1] + '" r="' + (3 + (i % 3)) + '" fill="none" stroke="' + V.light + '" stroke-width="1.5"/>';
+    else if (bid === 'nature') s += '<ellipse class="tw" style="' + st + '" cx="' + p[0] + '" cy="' + p[1] + '" rx="5" ry="2.4" fill="' + (i % 2 ? V.light : V.accent) + '" transform="rotate(' + (i * 50) + ' ' + p[0] + ' ' + p[1] + ')"/>';
+    else if (bid === 'ice') s += '<path class="tw" style="' + st + '" d="M' + (p[0] - 5) + ' ' + p[1] + 'h10M' + p[0] + ' ' + (p[1] - 5) + 'v10M' + (p[0] - 3.5) + ' ' + (p[1] - 3.5) + 'l7 7M' + (p[0] + 3.5) + ' ' + (p[1] - 3.5) + 'l-7 7" stroke="#fff" stroke-width="1.3"/>';
+    else if (bid === 'light') s += '<path class="tw" style="' + st + '" transform="translate(' + p[0] + ' ' + p[1] + ') scale(' + (0.8 + (i % 3) * 0.3) + ')" d="M0-6L1.8-1.8L6 0L1.8 1.8L0 6L-1.8 1.8L-6 0L-1.8-1.8Z" fill="#fff6c0"/>';
+    else s += '<circle class="tw" style="' + st + '" cx="' + p[0] + '" cy="' + p[1] + '" r="' + (3 + (i % 3)) + '" fill="' + V.accent + '" opacity=".6"/>';
+  }
+  return s;
+}
+
+/* ===== Accessories: drawn in the same outlined/gradient style ===== */
+function neckFrame(c, t){
+  const e = edges(c.neck, c.neckW, 6), i = Math.max(1, Math.min(e.C.length - 2, Math.round(t * (e.C.length - 1))));
+  const p = e.C[i], n = e.L[i], w = n[4] * 2;
+  const tg = nrm([0, 0], [n[2], n[3]]); // tangent from normal
+  return { x: p[0], y: p[1], nx: n[2], ny: n[3], tx: -n[3] * -1, ty: n[2] * -1, w };
+}
+const OL = '#3a2410';
+const ACC_ART = {
+  /* ---- head ---- */
+  crown: () => '<path d="M-16-17L-19-38L-8-29L0-44L8-29L19-38L16-17Z" fill="#ffd24a" stroke="#8a5a00" stroke-width="1.6" stroke-linejoin="round"/><path d="M-16-17L16-17L15-22L-15-22Z" fill="#e8a91a" stroke="#8a5a00" stroke-width="1.2"/><path d="M-12-32L-8-29" stroke="#fff" stroke-width="1.3" opacity=".7"/><circle cx="0" cy="-26" r="3" fill="#ff4a6a" stroke="#8a5a00" stroke-width="1"/><circle cx="-10" cy="-21" r="2" fill="#4ad0ff" stroke="#8a5a00" stroke-width=".8"/><circle cx="10" cy="-21" r="2" fill="#6aff8a" stroke="#8a5a00" stroke-width=".8"/>',
+  wizard: () => '<ellipse cx="2" cy="-19" rx="30" ry="7" fill="#5a3aa8" stroke="#2a1560" stroke-width="1.6"/><path d="M-14-20Q-8-52 8-84Q18-76 22-62Q18-40 18-20Z" fill="#7a52d8" stroke="#2a1560" stroke-width="1.6" stroke-linejoin="round"/><path d="M-12-24Q4-18 18-24L18-20Q4-14-14-20Z" fill="#ffd24a" stroke="#8a5a00" stroke-width="1"/><path d="M8-84Q26-80 28-66" stroke="#2a1560" stroke-width="1.6" fill="none"/><path d="M0-48l2 5 5 .5-4 3 1.5 5-4.5-3-4.5 3 1.5-5-4-3 5-.5z" fill="#ffe27a"/><circle cx="9" cy="-66" r="2" fill="#ffe27a"/><circle cx="-2" cy="-34" r="1.6" fill="#ffe27a"/>',
+  wreath: () => '<path d="M-20-8Q-14-26 6-24Q24-22 30-6" stroke="#2f8a2a" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M-20-8Q-14-26 6-24Q24-22 30-6" stroke="#59c640" stroke-width="3" fill="none" stroke-linecap="round"/>' + [[-16, -14, '#ff9fc8'], [-4, -22, '#fff'], [10, -23, '#ffd86a'], [22, -16, '#ff9fc8'], [29, -7, '#fff']].map(f => '<circle cx="' + f[0] + '" cy="' + f[1] + '" r="4.2" fill="' + f[2] + '" stroke="' + OL + '" stroke-width="1"/><circle cx="' + f[0] + '" cy="' + f[1] + '" r="1.4" fill="#ffb02e"/>').join(''),
+  bow: () => '<g transform="translate(-6 -24) rotate(-14)"><path d="M0 0L-18-12L-18 12Z" fill="#ff5a8a" stroke="#7a1030" stroke-width="1.5" stroke-linejoin="round"/><path d="M0 0L18-12L18 12Z" fill="#ff5a8a" stroke="#7a1030" stroke-width="1.5" stroke-linejoin="round"/><path d="M-14-6L-6-1M14-6L6-1" stroke="#fff" stroke-width="1.2" opacity=".5"/><circle r="5" fill="#ff86aa" stroke="#7a1030" stroke-width="1.5"/></g>',
+  helm: () => '<path d="M-26-2Q-28-38 2-40Q32-38 30-6L22-4Q20-10 4-10Q-12-10-18-2Z" fill="#aab6c8" stroke="#2f3a4a" stroke-width="1.8" stroke-linejoin="round"/><path d="M-22-16Q2-26 28-14" stroke="#e8f0fa" stroke-width="2.5" fill="none" opacity=".7"/><path d="M2-40Q-6-58 12-64Q10-50 16-40Z" fill="#e8403a" stroke="#6a1410" stroke-width="1.4"/><path d="M-4-26L22-22" stroke="#2f3a4a" stroke-width="2"/>',
+  party: () => '<path d="M-12-20L6-70L22-20Z" fill="#ff7ac8" stroke="#6a1a5a" stroke-width="1.6" stroke-linejoin="round"/><path d="M-8-32L18-34M-4-44L14-46M0-56L10-58" stroke="#ffe27a" stroke-width="3.2" opacity=".95"/><circle cx="6" cy="-72" r="5" fill="#6aeaff" stroke="#14586a" stroke-width="1.4"/><ellipse cx="5" cy="-19" rx="19" ry="4.5" fill="#ffd24a" stroke="#8a5a00" stroke-width="1.2"/>',
+  halo: () => '<ellipse cx="-2" cy="-40" rx="26" ry="7" fill="none" stroke="#fff3b0" stroke-width="5" opacity=".6"/><ellipse cx="-2" cy="-40" rx="26" ry="7" fill="none" stroke="#ffd24a" stroke-width="3"/>',
+  /* ---- face (eye at 15,-7) ---- */
+  glasses: () => '<path d="M6-6L-22-9" stroke="#2a1a10" stroke-width="2.2" stroke-linecap="round"/><circle cx="15" cy="-7" r="10.5" fill="#bfe8ff" fill-opacity=".28" stroke="#2a1a10" stroke-width="2.6"/><path d="M8-12Q12-15 17-14" stroke="#fff" stroke-width="1.8" stroke-linecap="round" fill="none"/><path d="M25-5L32-3" stroke="#2a1a10" stroke-width="2"/>',
+  shades: () => '<path d="M5-8L-22-10" stroke="#16101e" stroke-width="2.6" stroke-linecap="round"/><path d="M4-14Q16-18 28-11Q27 3 17 4Q6 3 4-14Z" fill="#171226" stroke="#0a0710" stroke-width="1.6"/><path d="M8-12Q15-15 22-12" stroke="#7a6aff" stroke-width="1.6" fill="none" opacity=".8"/><path d="M10-7L16-12" stroke="#fff" stroke-width="1.4" opacity=".5"/>',
+  monocle: () => '<circle cx="15" cy="-7" r="10" fill="#fff" fill-opacity=".15" stroke="#ffd24a" stroke-width="2.6"/><circle cx="15" cy="-7" r="10" fill="none" stroke="#8a5a00" stroke-width=".8"/><path d="M12-14Q16-16 20-14" stroke="#fff" stroke-width="1.6" fill="none"/><path d="M20 3Q26 16 18 30" stroke="#ffd24a" stroke-width="1.8" fill="none" stroke-dasharray="2.5 2"/>',
+  patch: () => '<path d="M-22-4L3-14M22-14L36-8" stroke="#16101e" stroke-width="2.4" stroke-linecap="round"/><ellipse cx="15" cy="-7" rx="11" ry="9" fill="#1c1626" stroke="#0a0710" stroke-width="1.6" transform="rotate(-10 15 -7)"/><path d="M9-10Q14-13 19-10" stroke="#6a5aa0" stroke-width="1.4" fill="none" opacity=".7"/>',
+  /* ---- neck (world coords, c = {neck, neckW}) ---- */
+  scarf: c => { const f = neckFrame(c, 0.5), W = f.w / 2 + 4; const ax = f.x - f.nx * W, ay = f.y - f.ny * W, bx = f.x + f.nx * W, by = f.y + f.ny * W;
+    return '<path d="M' + f1(ax) + ' ' + f1(ay - 5) + 'L' + f1(bx) + ' ' + f1(by - 5) + 'L' + f1(bx + 1) + ' ' + f1(by + 9) + 'L' + f1(ax + 1) + ' ' + f1(ay + 9) + 'Z" fill="#e8403a" stroke="#6a1410" stroke-width="1.7" stroke-linejoin="round"/>' +
+      '<path d="M' + f1(ax + 1) + ' ' + f1(ay) + 'L' + f1(bx + 1) + ' ' + f1(by) + '" stroke="#ffd24a" stroke-width="2.6"/>' +
+      '<path d="M' + f1(bx - 8) + ' ' + f1(by + 6) + 'L' + f1(bx - 2) + ' ' + f1(by + 40) + 'L' + f1(bx - 17) + ' ' + f1(by + 38) + 'L' + f1(bx - 18) + ' ' + f1(by + 8) + 'Z" fill="#e8403a" stroke="#6a1410" stroke-width="1.7" stroke-linejoin="round"/>' +
+      '<path d="M' + f1(bx - 17) + ' ' + f1(by + 24) + 'L' + f1(bx - 3) + ' ' + f1(by + 26) + '" stroke="#ffd24a" stroke-width="2.6"/>' +
+      '<path d="M' + f1(bx - 15) + ' ' + f1(by + 38) + 'v6M' + f1(bx - 11) + ' ' + f1(by + 39) + 'v6M' + f1(bx - 7) + ' ' + f1(by + 40) + 'v6M' + f1(bx - 3) + ' ' + f1(by + 40) + 'v5" stroke="#b02a22" stroke-width="2" stroke-linecap="round"/>'; },
+  bowtie: c => { const f = neckFrame(c, 0.46), fx = f.x + f.nx * f.w * 0.46, fy = f.y + f.ny * f.w * 0.46;
+    return '<g transform="translate(' + f1(fx) + ' ' + f1(fy) + ') rotate(18)"><path d="M0 0L-15-9L-15 9Z" fill="#3a6aff" stroke="#10286a" stroke-width="1.5" stroke-linejoin="round"/><path d="M0 0L15-9L15 9Z" fill="#3a6aff" stroke="#10286a" stroke-width="1.5" stroke-linejoin="round"/><path d="M-11-4L-4-1M11-4L4-1" stroke="#fff" stroke-width="1.1" opacity=".5"/><circle r="4" fill="#6a8aff" stroke="#10286a" stroke-width="1.4"/></g>'; },
+  amulet: c => { const f = neckFrame(c, 0.4), W = f.w / 2 + 1; const ax = f.x - f.nx * W, ay = f.y - f.ny * W, bx = f.x + f.nx * W, by = f.y + f.ny * W, mx = (ax + bx) / 2, my = (ay + by) / 2 + 20;
+    return '<path d="M' + f1(ax) + ' ' + f1(ay) + 'Q' + f1(mx) + ' ' + f1(my + 8) + ' ' + f1(bx) + ' ' + f1(by) + '" stroke="#ffd24a" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M' + f1(ax) + ' ' + f1(ay) + 'Q' + f1(mx) + ' ' + f1(my + 8) + ' ' + f1(bx) + ' ' + f1(by) + '" stroke="#8a5a00" stroke-width=".9" fill="none"/>' +
+      '<path d="' + poly([[mx, my + 4], [mx + 8, my + 14], [mx, my + 26], [mx - 8, my + 14]]) + '" fill="#4ad0ff" stroke="#14586a" stroke-width="1.6" stroke-linejoin="round"/><path d="' + poly([[mx, my + 4], [mx + 8, my + 14], [mx, my + 14]]) + '" fill="#fff" opacity=".5"/>'; },
+  bell: c => { const f = neckFrame(c, 0.46), fx = f.x + f.nx * f.w * 0.5, fy = f.y + f.ny * f.w * 0.5 + 6;
+    return '<path d="M' + f1(fx - f.nx * f.w * 0.5) + ' ' + f1(fy - 6 - f.ny * f.w * 0.5) + 'Q' + f1(fx) + ' ' + f1(fy + 2) + ' ' + f1(fx + 2) + ' ' + f1(fy) + '" stroke="#e8403a" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="' + f1(fx + 1) + '" cy="' + f1(fy + 7) + '" r="7" fill="#ffd24a" stroke="#8a5a00" stroke-width="1.6"/><path d="M' + f1(fx - 6) + ' ' + f1(fy + 9) + 'h14" stroke="#8a5a00" stroke-width="1.4"/><circle cx="' + f1(fx + 1) + '" cy="' + f1(fy + 12) + '" r="1.6" fill="#8a5a00"/><path d="M' + f1(fx - 3) + ' ' + f1(fy + 3) + 'l3-2" stroke="#fff" stroke-width="1.4" opacity=".8"/>'; }
+};
+function accessoriesSVG(acc, c){
+  let s = '';
+  if (acc.neck && ACC_ART[acc.neck]) s += ACC_ART[acc.neck](c);
+  const P = c.P, head = c.head;
+  let hs = '';
+  if (acc.face && ACC_ART[acc.face]) hs += ACC_ART[acc.face](c);
+  if (acc.head && ACC_ART[acc.head]) hs += ACC_ART[acc.head](c);
+  if (hs) s += '<g transform="translate(' + f1(head[0]) + ' ' + f1(head[1]) + ') rotate(6) scale(' + f1(P.hs * P.hx) + ' ' + P.hs + ')">' + hs + '</g>';
+  return s;
+}
+
+/* ===== Egg ===== */
+function eggSVG(type, p) {
+  let prem = type === 'premium';
+  let c1 = prem ? '#bfe6ff' : '#e3dcf3', c2 = prem ? '#6fb7ee' : '#b9acd8';
+  let id = 'eg' + (++UID);
+  let s = '<svg viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg"><defs>' +
+    '<linearGradient id="' + id + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="' + c1 + '"/><stop offset="1" stop-color="' + c2 + '"/></linearGradient>' +
+    '<radialGradient id="' + id + 'g"><stop offset="0" stop-color="#ffd98a" stop-opacity=".95"/><stop offset="1" stop-color="#ffd98a" stop-opacity="0"/></radialGradient></defs>';
+  if (p > 0.45) s += '<circle cx="100" cy="132" r="' + (95 + p * 20) + '" fill="url(#' + id + 'g)" opacity="' + Math.min(1, (p - 0.35)) + '"/>';
+  s += '<path d="M100 20 C150 20 176 110 176 150 C176 200 142 224 100 224 C58 224 24 200 24 150 C24 110 50 20 100 20 Z" fill="url(#' + id + ')" stroke="rgba(255,255,255,.4)" stroke-width="3"/>';
+  let sc = prem ? '#ffd24a' : '#8d7fb5';
+  s += '<g fill="' + sc + '" opacity=".75"><circle cx="70" cy="112" r="6"/><circle cx="128" cy="94" r="5"/><circle cx="122" cy="162" r="7"/><circle cx="78" cy="172" r="5"/><circle cx="100" cy="62" r="4"/><circle cx="144" cy="132" r="4"/></g>';
+  s += '<ellipse cx="72" cy="72" rx="10" ry="20" fill="#fff" opacity=".4" transform="rotate(18 72 72)"/>';
+  let cr = '<g stroke="#3a2a5e" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none">';
+  if (p > 0.25) cr += '<path d="M100 60 L90 82 L104 96 L92 118"/>';
+  if (p > 0.55) cr += '<path d="M148 124 L130 134 L142 152 L124 168"/>';
+  if (p > 0.8)  cr += '<path d="M54 132 L72 144 L60 162 L78 178"/><path d="M104 96 L124 104"/>';
+  s += cr + '</g></svg>';
+  return s;
+}
+
+/* ===== Backgrounds (scenes) – 400x330 canvas, ground ~ y=268 ===== */
+function rng(seed){ let a = seed >>> 0; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function lgrad(id, stops, x2, y2){ return '<linearGradient id="' + id + '" x1="0" y1="0" x2="' + (x2 || 0) + '" y2="' + (y2 === undefined ? 1 : y2) + '">' + stops.map((s, i) => '<stop offset="' + (i / (stops.length - 1)) + '" stop-color="' + s + '"/>').join('') + '</linearGradient>'; }
+function rgrad(id, c, o1, o2){ return '<radialGradient id="' + id + '"><stop offset="0" stop-color="' + c + '" stop-opacity="' + (o1 === undefined ? 1 : o1) + '"/><stop offset="1" stop-color="' + c + '" stop-opacity="' + (o2 || 0) + '"/></radialGradient>'; }
+function starsSVG(seed, n, y0, y1, col){ const r = rng(seed); let s = ''; for (let i = 0; i < n; i++) { const x = r() * 400, y = y0 + r() * (y1 - y0), q = r(); s += '<circle cx="' + f1(x) + '" cy="' + f1(y) + '" r="' + f1(0.6 + q * 1.4) + '" fill="' + (col || '#fff') + '" opacity="' + f1(0.4 + q * 0.6) + '"' + (q > .8 ? ' class="tw" style="animation-delay:' + f1(q * 2) + 's"' : '') + '/>'; } return s; }
+function cloudSVG(x, y, k, col, op){ return '<g transform="translate(' + x + ' ' + y + ') scale(' + k + ')" fill="' + (col || '#fff') + '" opacity="' + (op || 0.9) + '"><ellipse cx="0" cy="0" rx="30" ry="9"/><ellipse cx="-14" cy="-6" rx="16" ry="11"/><ellipse cx="10" cy="-9" rx="19" ry="13"/><ellipse cx="26" cy="-2" rx="14" ry="8"/></g>'; }
+function mtn(pts, fill, snow){ let s = '<path d="M' + pts.map(p => p.join(' ')).join('L') + 'L400 330L0 330Z" fill="' + fill + '"/>'; return s; }
+function rockGround(c1, c2, y){ return '<path d="M0 ' + y + 'Q60 ' + (y - 8) + ' 120 ' + (y - 2) + 'Q200 ' + (y - 12) + ' 280 ' + (y - 3) + 'Q350 ' + (y - 8) + ' 400 ' + (y - 1) + 'L400 330L0 330Z" fill="' + c1 + '"/><path d="M0 ' + (y + 14) + 'Q100 ' + (y + 6) + ' 200 ' + (y + 12) + 'Q300 ' + (y + 6) + ' 400 ' + (y + 12) + 'L400 330L0 330Z" fill="' + c2 + '"/>'; }
+
+const SCENES = {
+  nest(id) { return { defs: lgrad(id + 'a', ['#3a2f8a', '#231c58', '#14203f']) + rgrad(id + 'm', '#fff6d8', .9, 0),
+    body: '<rect width="400" height="330" fill="url(#' + id + 'a)"/>' + starsSVG(11, 46, 0, 200) +
+    '<circle cx="320" cy="62" r="46" fill="url(#' + id + 'm)"/><circle cx="320" cy="62" r="19" fill="#fff6d8"/><circle cx="313" cy="56" r="4" fill="#e8dcb8" opacity=".7"/>' +
+    mtn([[0, 210], [60, 160], [110, 205], [170, 150], [240, 210], [300, 170], [360, 205], [400, 180]], '#2a2470') + mtn([[0, 240], [80, 200], [150, 240], [230, 196], [310, 240], [400, 214]], '#1d1a55') +
+    rockGround('#3b2717', '#2a1a0e', 262) + '<ellipse cx="200" cy="286" rx="168" ry="34" fill="#5a3d27"/><ellipse cx="200" cy="278" rx="146" ry="25" fill="#3b2717"/><g stroke="#8a6240" stroke-width="4.5" stroke-linecap="round" fill="none"><path d="M40 290Q80 312 140 306"/><path d="M90 304Q160 322 250 312"/><path d="M180 312Q280 322 350 292"/><path d="M60 280Q95 294 130 290"/><path d="M250 296Q310 302 345 280"/></g>' }; },
+  meadow(id) { return { defs: lgrad(id + 'a', ['#5fb8ff', '#a8dcff', '#e4f6ff']) + rgrad(id + 's', '#fff7b0', 1, 0),
+    body: '<rect width="400" height="330" fill="url(#' + id + 'a)"/><circle cx="90" cy="70" r="60" fill="url(#' + id + 's)"/><circle cx="90" cy="70" r="24" fill="#fff6a8"/>' + cloudSVG(260, 60, 1.2) + cloudSVG(160, 110, 0.8, '#fff', .8) + cloudSVG(350, 120, 0.9, '#fff', .8) +
+    '<path d="M0 210Q80 170 160 205T320 190T400 205L400 330L0 330Z" fill="#7fcf6a"/><path d="M0 235Q100 200 200 232T400 224L400 330L0 330Z" fill="#59b84a"/>' +
+    [[40, 215], [330, 210], [370, 222]].map((t, i) => '<rect x="' + (t[0] - 3) + '" y="' + t[1] + '" width="6" height="22" fill="#6a4a2a"/><circle cx="' + t[0] + '" cy="' + (t[1] - 6) + '" r="' + (18 - i * 2) + '" fill="#2f9a3a"/><circle cx="' + (t[0] - 6) + '" cy="' + (t[1] - 12) + '" r="10" fill="#4cc050"/>').join('') +
+    '<path d="M0 262Q100 246 200 262T400 256L400 330L0 330Z" fill="#3fa23c"/>' + (() => { const r = rng(5); let s = ''; for (let i = 0; i < 34; i++) { const x = r() * 400, y = 270 + r() * 56, c = ['#ff9fc8', '#fff', '#ffd86a', '#ff7a7a', '#b89aff'][i % 5]; s += '<path d="M' + f1(x) + ' ' + f1(y) + 'v8" stroke="#2f7a2a" stroke-width="1.5"/><circle cx="' + f1(x) + '" cy="' + f1(y) + '" r="3.4" fill="' + c + '"/><circle cx="' + f1(x) + '" cy="' + f1(y) + '" r="1.2" fill="#ffb02e"/>'; } return s; })() }; },
+  volcano(id) { return { defs: lgrad(id + 'a', ['#2a0c1c', '#7a2418', '#ff8a2a']) + rgrad(id + 'l', '#ff7a1a', .9, 0),
+    body: '<rect width="400" height="330" fill="url(#' + id + 'a)"/>' + starsSVG(7, 14, 0, 70, '#ffd0a0') + '<circle cx="240" cy="150" r="130" fill="url(#' + id + 'l)"/>' +
+    mtn([[0, 230], [70, 190], [130, 224], [400, 230]], '#3a1418') + '<path d="M120 252L200 120L226 120L312 252Z" fill="#2a0e12"/><path d="M200 120Q213 108 226 120L220 126Q213 118 206 126Z" fill="#ff7a1a"/><path d="M213 122Q200 170 186 214M213 122Q226 176 246 228M214 126Q216 190 212 240" stroke="#ff8a2a" stroke-width="3.5" fill="none" stroke-linecap="round" opacity=".9"/><path d="M213 112Q190 80 214 48Q226 84 244 66Q240 100 213 112Z" fill="#3a1a1e" opacity=".6"/>' +
+    (() => { const r = rng(9); let s = ''; for (let i = 0; i < 26; i++) s += '<circle class="tw" style="animation-delay:' + f1(r() * 2) + 's" cx="' + f1(120 + r() * 220) + '" cy="' + f1(40 + r() * 200) + '" r="' + f1(1 + r() * 2) + '" fill="#ffb04a"/>'; return s; })() +
+    rockGround('#2a0e12', '#1a070a', 262) + '<path d="M30 296Q80 284 130 298M180 304Q240 290 300 306M320 290Q350 284 380 292" stroke="#ff7a1a" stroke-width="3" fill="none" stroke-linecap="round" opacity=".85"/>' }; },
+  glacier(id) { return { defs: lgrad(id + 'a', ['#7ec8f0', '#b8e4ff', '#f0faff']) + lgrad(id + 'au', ['#7fffd4', '#7fb0ff', '#b86bff'], 1, 0),
+    body: '<rect width="400" height="330" fill="url(#' + id + 'a)"/><path d="M0 70Q100 20 200 60T400 50L400 90Q300 110 200 84T0 100Z" fill="url(#' + id + 'au)" opacity=".28"/>' + cloudSVG(80, 70, 1, '#fff', .7) +
+    mtn([[0, 200], [60, 120], [110, 190], [180, 100], [250, 190], [320, 130], [400, 196]], '#8fb8e0') + '<path d="M60 120L40 150L62 142L74 156L86 140L110 190L60 120ZM180 100L156 138L176 130L190 148L204 126L250 190L180 100Z" fill="#fff" opacity=".9"/>' +
+    mtn([[0, 240], [90, 190], [170, 236], [260, 180], [340, 232], [400, 210]], '#6a98c8') + rockGround('#e6f4ff', '#c4e0f6', 262) +
+    [[40, 270, 1], [350, 268, 1.2], [300, 280, .8], [90, 285, .7]].map(c => '<g transform="translate(' + c[0] + ' ' + c[1] + ') scale(' + c[2] + ')"><path d="M0 0L-8-30L0-52L8-30Z" fill="#9fe6ff" stroke="#3a8ac8" stroke-width="1.5"/><path d="M0 0L-8-30L0-52L0 0Z" fill="#fff" opacity=".5"/><path d="M10 2L18-20L24 2Z" fill="#7fd6ff" stroke="#3a8ac8" stroke-width="1.2"/></g>').join('') + starsSVG(3, 18, 0, 170, '#fff') }; },
+  grotto(id) { return { defs: lgrad(id + 'a', ['#1a7ab0', '#0a4a7a', '#05233f']) ,
+    body: '<rect width="400" height="330" fill="url(#' + id + 'a)"/>' + [[60, 0, 10], [150, 0, 24], [250, 0, 14], [330, 0, 20]].map(r => '<path d="M' + r[0] + ' 0L' + (r[0] + r[2]) + ' 0L' + (r[0] + r[2] * 3 - 30) + ' 270L' + (r[0] - 20) + ' 270Z" fill="#aef0ff" opacity=".10"/>').join('') +
+    (() => { const r = rng(21); let s = ''; for (let i = 0; i < 24; i++) { const x = r() * 400, y = 30 + r() * 230, q = 2 + r() * 5; s += '<circle class="tw" style="animation-delay:' + f1(r() * 2) + 's" cx="' + f1(x) + '" cy="' + f1(y) + '" r="' + f1(q) + '" fill="none" stroke="#bff6ff" stroke-width="1.4"/>'; } return s; })() +
+    '<path d="M0 220Q60 170 110 220T200 230T300 200T400 226L400 330L0 330Z" fill="#0c3b66"/><path d="M0 250Q100 226 200 252T400 244L400 330L0 330Z" fill="#14507c"/>' +
+    [[30, 262, '#ff6a8a'], [64, 270, '#ff9a5a'], [340, 266, '#ff6a8a'], [372, 274, '#b86bff'], [310, 276, '#ff9a5a']].map((c, i) => '<g transform="translate(' + c[0] + ' ' + c[1] + ')"><path d="M0 0Q-6-20-12-32M0 0Q0-26 2-40M0 0Q8-18 16-30" stroke="' + c[2] + '" stroke-width="5" stroke-linecap="round" fill="none"/><circle cx="-12" cy="-32" r="3.5" fill="' + c[2] + '"/><circle cx="2" cy="-40" r="3.5" fill="' + c[2] + '"/><circle cx="16" cy="-30" r="3.5" fill="' + c[2] + '"/></g>').join('') +
+    '<path d="M0 282Q100 266 200 282T400 276L400 330L0 330Z" fill="#d8c48a"/><path d="M0 300Q120 290 240 302T400 298L400 330L0 330Z" fill="#b8a46a"/><ellipse cx="90" cy="296" rx="12" ry="7" fill="#fff" opacity=".85"/><path d="M60 300L66 292L72 300Z" fill="#ff9fc8"/>' }; },
+  sky(id) { return { defs: lgrad(id + 'a', ['#3a8aff', '#7ec8ff', '#d4f0ff']),
+    body: '<rect width="400" height="330" fill="url(#' + id + 'a)"/>' + cloudSVG(60, 70, 1.1) + cloudSVG(330, 50, 1.3) + cloudSVG(220, 130, .8, '#fff', .75) +
+    [[70, 130, 1], [330, 150, .8]].map(c => '<g transform="translate(' + c[0] + ' ' + c[1] + ') scale(' + c[2] + ')"><path d="M-48 0Q-40 38-12 52Q0 64 10 52Q40 36 48 0Z" fill="#7a6a5a"/><path d="M-48 0Q0-14 48 0Q0 10-48 0Z" fill="#59c040"/><path d="M-20 0L-20-24L-12-24L-12-34L-4-34L-4-24L4-24L4-40L12-40L12-24L20-24L20 0Z" fill="#c8d4e8" stroke="#8a98b8" stroke-width="1"/><path d="M-30 2Q-32 40-28 64M-26 2Q-26 36-22 62" stroke="#bfe8ff" stroke-width="3" fill="none" opacity=".8"/></g>').join('') +
+    '<path d="M0 250Q60 226 130 246T260 240T400 250L400 330L0 330Z" fill="#fff" opacity=".9"/><path d="M0 276Q100 256 200 278T400 270L400 330L0 330Z" fill="#e8f4ff"/><path d="M0 298Q120 286 240 300T400 296L400 330L0 330Z" fill="#d4e8fa"/>' + starsSVG(2, 6, 0, 60, '#fff') }; },
+  temple(id) { return { defs: lgrad(id + 'a', ['#ffd070', '#ffe9a8', '#fff6d8']) + rgrad(id + 's', '#fff', .95, 0),
+    body: '<rect width="400" height="330" fill="url(#' + id + 'a)"/><circle cx="200" cy="70" r="150" fill="url(#' + id + 's)" opacity=".7"/>' + [-70, -42, -18, 0, 18, 42, 70].map(a => '<path d="M200 -20L' + f1(200 + a * 4.2 - 16) + ' 300L' + f1(200 + a * 4.2 + 16) + ' 300Z" fill="#fff" opacity=".13"/>').join('') +
+    '<path d="M60 262L60 130L340 130L340 262Z" fill="#f6e8c0" opacity=".5"/><path d="M40 130L200 60L360 130Z" fill="#f0d89a" stroke="#c8a24a" stroke-width="2.5" stroke-linejoin="round"/><path d="M40 130L360 130" stroke="#c8a24a" stroke-width="5"/>' +
+    [60, 120, 280, 340].map(x => '<rect x="' + (x - 11) + '" y="136" width="22" height="124" fill="#fff3d0" stroke="#c8a24a" stroke-width="2"/><rect x="' + (x - 15) + '" y="130" width="30" height="9" fill="#f0d89a" stroke="#c8a24a" stroke-width="2"/><rect x="' + (x - 15) + '" y="258" width="30" height="9" fill="#f0d89a" stroke="#c8a24a" stroke-width="2"/><path d="M' + (x - 5) + ' 140v116M' + (x + 4) + ' 140v116" stroke="#e8d4a0" stroke-width="2"/>').join('') +
+    '<circle cx="200" cy="108" r="14" fill="#ffd24a" stroke="#c8a24a" stroke-width="2"/><path d="M200 90v-10M200 126v10M182 108h-10M218 108h10M187 95l-7-7M213 121l7 7M213 95l7-7M187 121l-7 7" stroke="#ffd24a" stroke-width="2.4" stroke-linecap="round"/>' +
+    '<path d="M0 262L400 262L400 330L0 330Z" fill="#f6e4b0"/><path d="M0 262L400 262" stroke="#c8a24a" stroke-width="3"/><path d="M0 286L400 286M0 308L400 308M80 262L40 330M200 262L200 330M320 262L360 330" stroke="#d8c088" stroke-width="2"/>' + starsSVG(8, 20, 0, 250, '#fff') }; },
+  ruins(id) { return { defs: lgrad(id + 'a', ['#0e0820', '#2a1450', '#4a2478']) + rgrad(id + 'm', '#e0c8ff', .8, 0),
+    body: '<rect width="400" height="330" fill="url(#' + id + 'a)"/>' + starsSVG(4, 36, 0, 180, '#d8c0ff') + '<circle cx="80" cy="70" r="60" fill="url(#' + id + 'm)"/><circle cx="80" cy="70" r="24" fill="#efe0ff"/><circle cx="72" cy="64" r="5" fill="#cbb8ee"/>' +
+    '<path d="M0 210L40 170L70 200L110 150L150 196L210 140L250 190L300 160L340 196L400 170L400 330L0 330Z" fill="#1a0e32"/>' +
+    [[250, 150, 20, 120], [320, 190, 16, 80], [60, 200, 18, 60], [180, 210, 14, 50]].map(c => '<path d="M' + (c[0] - c[2] / 2) + ' 266L' + (c[0] - c[2] / 2) + ' ' + (266 - c[3]) + 'L' + (c[0] - c[2] / 4) + ' ' + (262 - c[3]) + 'L' + c[0] + ' ' + (270 - c[3]) + 'L' + (c[0] + c[2] / 2) + ' ' + (264 - c[3]) + 'L' + (c[0] + c[2] / 2) + ' 266Z" fill="#3a2860" stroke="#6a48a8" stroke-width="1.6"/>').join('') +
+    '<path d="M0 262Q100 248 200 262T400 256L400 330L0 330Z" fill="#241446"/><path d="M0 282Q120 270 240 284T400 280L400 330L0 330Z" fill="#1a0e32"/><path d="M40 300L90 292L130 304M230 306L290 296L350 308" stroke="#b06aff" stroke-width="2.6" fill="none" stroke-linecap="round" opacity=".9"/>' +
+    '<path d="M0 250Q80 236 160 252T320 244T400 252L400 280L0 280Z" fill="#8a5ad8" opacity=".18"/>' + (() => { const r = rng(31); let s = ''; for (let i = 0; i < 10; i++) s += '<path class="tw" style="animation-delay:' + f1(r() * 2) + 's" d="M' + f1(r() * 400) + ' ' + f1(200 + r() * 90) + 'q-6-14 4-24q-2 10 8 14z" fill="#c070f0" opacity=".6"/>'; return s; })() }; },
+  galaxy(id) { return { defs: lgrad(id + 'a', ['#080a2a', '#1a1050', '#2a1068']) + rgrad(id + 'n1', '#ff4ac8', .55, 0) + rgrad(id + 'n2', '#4a8cff', .55, 0) + rgrad(id + 'p', '#ffb06a', 1, .2),
+    body: '<rect width="400" height="330" fill="url(#' + id + 'a)"/><circle cx="110" cy="110" r="140" fill="url(#' + id + 'n1)"/><circle cx="310" cy="150" r="150" fill="url(#' + id + 'n2)"/>' + starsSVG(15, 90, 0, 270, '#fff') +
+    '<circle cx="320" cy="64" r="30" fill="url(#' + id + 'p)"/><ellipse cx="320" cy="64" rx="50" ry="8" fill="none" stroke="#ffe0a8" stroke-width="3" opacity=".8" transform="rotate(-18 320 64)"/><circle cx="60" cy="210" r="12" fill="#6aeaff"/><circle cx="56" cy="206" r="4" fill="#fff" opacity=".6"/>' +
+    '<path d="M60 262Q200 246 340 262L320 300Q200 330 80 300Z" fill="#4a3a8a"/><path d="M60 262Q200 246 340 262Q200 272 60 262Z" fill="#7a68d0"/><path d="M110 300L120 322L136 300M250 304L262 326L276 302" fill="#3a2a70"/>' }; }
+};
+const SCENE_ORDER = ['nest', 'meadow', 'volcano', 'glacier', 'grotto', 'sky', 'temple', 'ruins', 'galaxy'];
+let SCENE_UID = 0;
+function sceneSVG(name){
+  const id = 'sc' + (++SCENE_UID) + '_', sc = (SCENES[name] || SCENES.nest)(id);
+  return '<svg class="scenesvg" viewBox="0 0 400 330" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg"><defs>' + sc.defs + '</defs>' + sc.body + '</svg>';
+}
+
+/* ===== World: regions, locations (24), enemies ===== */
+const MAP_W = 1500, MAP_H = 1400, NEST = { x: 750, y: 700 };
+// порядок = индексы пород: 0 огонь, 1 вода, 2 природа, 3 свет, 4 тень, 5 лёд
+const REGION_ANGLE = [30, 90, 210, 330, 150, 270];
+const TIER_R = [190, 335, 480, 625];
+const TIER_ROT = [-9, 10, -7, 8];
+const LOC_NAMES = [
+  ['Тлеющая долина', 'Пепельный вулкан', 'Кузница Титанов', 'Сердце Магмы'],
+  ['Тихая лагуна', 'Грот Сирен', 'Затонувший храм', 'Бездна Левиафана'],
+  ['Шепчущая роща', 'Древо Предков', 'Болота Змеиного Корня', 'Колыбель Леса'],
+  ['Рассветные холмы', 'Парящие острова', 'Золотой Чертог', 'Небесный Трон'],
+  ['Туманная топь', 'Руины Теней', 'Кладбище Драконов', 'Цитадель Ночи'],
+  ['Снежный перевал', 'Хрустальный ледник', 'Ледяной замок', 'Трон Вьюги']
+];
+const LOC_REC = [[15, 60, 150, 380], [17, 66, 170, 430], [19, 72, 190, 490], [22, 80, 215, 560], [25, 90, 245, 640], [28, 100, 280, 720]];
+const MINIONS = [
+  [['Искровик', '🔥'], ['Лавовый скорпион', '🦂']],
+  [['Пиранья', '🐟'], ['Краб-воин', '🦀']],
+  [['Лесной гоблин', '👺'], ['Ядовитый паук', '🕷️']],
+  [['Фея-обманщица', '🧚'], ['Страж-сова', '🦉']],
+  [['Летучая тень', '🦇'], ['Призрак', '👻']],
+  [['Снежный волк', '🐺'], ['Ледяной дух', '❄️']]
+];
+const BOSSES = [
+  [['Вожак бесов', '👹'], ['Пепельный змей', '🐍'], ['Кузнец-великан', '🧌'], ['Владыка Магмы', '🌋']],
+  [['Акула-людоед', '🦈'], ['Королева сирен', '🧜'], ['Страж храма', '🗿'], ['Левиафан', '🐋']],
+  [['Лесной тролль', '🧌'], ['Древний энт', '🌳'], ['Болотная гидра', '🐍'], ['Хозяин леса', '🦌']],
+  [['Золотой гриф', '🦅'], ['Страж облаков', '🦄'], ['Каменный страж', '🗿'], ['Серафим', '👼']],
+  [['Ходячий мертвец', '🧟'], ['Король теней', '💀'], ['Костяной дракон', '🦖'], ['Повелитель ночи', '😈']],
+  [['Снежный йети', '🦍'], ['Ледяной элементаль', '🧊'], ['Мамонт-ветеран', '🦣'], ['Вьюжный король', '🥶']]
+];
+const TIER_GOLD = [100, 380, 1100, 3200], TIER_XP = [28, 70, 150, 300], TIER_GEM = [1, 2, 3, 5], TIER_FIRST = [3, 6, 10, 20];
+function stars(rec){ return rec < 40 ? 1 : rec < 100 ? 2 : rec < 200 ? 3 : rec < 400 ? 4 : 5; }
+const LOCS = [];
+for (let b = 0; b < 6; b++) for (let t = 0; t < 4; t++) {
+  const a = (REGION_ANGLE[b] + TIER_ROT[t]) * Math.PI / 180, r = TIER_R[t];
+  const x = Math.round(NEST.x + Math.cos(a) * r), y = Math.round(NEST.y + Math.sin(a) * r * 0.9);
+  const dist = Math.hypot(x - NEST.x, y - NEST.y), rec = LOC_REC[b][t];
+  LOCS.push({
+    id: b * 4 + t, b, t, x, y, name: LOC_NAMES[b][t], rec, stars: stars(rec),
+    ret: Math.round(8 + dist * 0.2), gold: Math.round(TIER_GOLD[t] * (1 + 0.08 * b)), xp: TIER_XP[t],
+    gems: TIER_GEM[t], first: TIER_FIRST[t], minions: MINIONS[b], boss: BOSSES[b][t],
+    egg: [[0.10, 0], [0.14, 0.02], [0.2, 0.06], [0.28, 0.14]][t]
+  });
+}
+// element advantage: a beats d
+const STRONG = { 0: [5, 2], 1: [0], 2: [1], 3: [4], 4: [3], 5: [2] };
+function elemMult(a, d){ return STRONG[a].indexOf(d) >= 0 ? 1.35 : (STRONG[d].indexOf(a) >= 0 ? 0.8 : 1); }
+const SPELLS = [
+  { n: 'Огненный шар',       ic: '🔥', kind: 'single', m: 2.2, fx: 'burn',  d: 'Мощный удар по цели и ожог на 3 хода' },
+  { n: 'Целительный прилив', ic: '💧', kind: 'heal',   m: 1.3, fx: null,    d: 'Лечит всех союзников' },
+  { n: 'Опутывающие лозы',   ic: '🌿', kind: 'single', m: 1.5, fx: 'stun',  d: 'Урон и оглушение цели на 1 ход' },
+  { n: 'Сияющий луч',        ic: '☀️', kind: 'aoe',    m: 1.0, fx: null,    d: 'Урон по всем врагам' },
+  { n: 'Теневой клык',       ic: '🌙', kind: 'single', m: 2.0, fx: 'drain', d: 'Урон по цели и лечение себя' },
+  { n: 'Ледяная буря',       ic: '❄️', kind: 'aoe',    m: 0.8, fx: 'weak',  d: 'Урон по всем и ослабление врагов' }
+];
+
+/* ===== World map backdrop (static SVG, 1500x1400) ===== */
+const ISL = [
+  { top: '#e0661e', side: '#6a2418', foam: '#ffb070' }, // fire
+  { top: '#f0e0a0', side: '#b89a5a', foam: '#bff6ff' }, // water (sand)
+  { top: '#5cc84a', side: '#2f7a28', foam: '#d8ffc8' }, // nature
+  { top: '#fff2c0', side: '#e8c060', foam: '#ffffff' }, // light
+  { top: '#6a4a9a', side: '#2a1a4a', foam: '#c8a8ff' }, // shadow
+  { top: '#eaf8ff', side: '#8ec0e8', foam: '#ffffff' }  // ice
+];
+function blob(cx, cy, r, seed){
+  const rg = rng(seed), pts = [], n = 11;
+  for (let i = 0; i < n; i++) { const a = i / n * Math.PI * 2, k = 0.78 + rg() * 0.3; pts.push([cx + Math.cos(a) * r * k * 1.15, cy + Math.sin(a) * r * k * 0.8]); }
+  return pts;
+}
+function decoFor(b, seed){
+  const rg = rng(seed); let s = '';
+  if (b === 0) {
+    s += '<path d="M-26 16L-9-34L9-34L26 16Z" fill="#3a1a1e" stroke="#1a0a0c" stroke-width="2"/><path d="M-9-34Q0-42 9-34L5-30Q0-36-5-30Z" fill="#ff7a1a"/><path d="M0-30Q-4-8-12 14M0-30Q6-6 14 14" stroke="#ff8a2a" stroke-width="3" fill="none" stroke-linecap="round"/>';
+    s += '<path d="M-34 14Q-30 4-22 14Z" fill="#3a1a1e"/><path d="M30 12L36-4L42 12Z" fill="#ff7a1a" opacity=".9"/>';
+  } else if (b === 1) {
+    s += '<path d="M-6 16Q-10-8 4-30" stroke="#8a5a2a" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M4-30Q-14-40-26-28M4-30Q16-42 30-30M4-30Q-6-48 8-52M4-30Q20-26 26-14" stroke="#2f9a3a" stroke-width="6" fill="none" stroke-linecap="round"/>';
+    s += '<path d="M28 14Q26 0 34-6M36 14Q40-2 30-10" stroke="#ff6a8a" stroke-width="4" fill="none" stroke-linecap="round"/><ellipse cx="-34" cy="16" rx="12" ry="5" fill="#bff6ff" opacity=".6"/>';
+  } else if (b === 2) {
+    [[-22, 6, 18], [8, -6, 24], [30, 10, 15]].forEach(t => { s += '<rect x="' + (t[0] - 3) + '" y="' + t[1] + '" width="6" height="16" fill="#6a4a2a"/><circle cx="' + t[0] + '" cy="' + (t[1] - 4) + '" r="' + t[2] + '" fill="#2f9a3a" stroke="#1a5a1a" stroke-width="1.5"/><circle cx="' + (t[0] - 5) + '" cy="' + (t[1] - 10) + '" r="' + t[2] * 0.5 + '" fill="#59c640"/>'; });
+  } else if (b === 3) {
+    s += '<rect x="-24" y="-14" width="10" height="32" fill="#fff6d8" stroke="#c8a24a" stroke-width="1.8"/><rect x="14" y="-14" width="10" height="32" fill="#fff6d8" stroke="#c8a24a" stroke-width="1.8"/><path d="M-30-14L0-34L30-14Z" fill="#f0d89a" stroke="#c8a24a" stroke-width="1.8" stroke-linejoin="round"/><circle cx="0" cy="-2" r="7" fill="#ffd24a"/><path d="M0-12v-4M0 8v4M-10-2h-4M10-2h4" stroke="#ffd24a" stroke-width="2"/>';
+  } else if (b === 4) {
+    s += '<path d="M-4 16Q-8-6 2-18Q-6-24-14-30M2-18Q8-26 18-26M-2 0Q-14-6-20-16" stroke="#1a1030" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M22 16L22-2Q28-10 34-2L34 16Z" fill="#4a3a6a" stroke="#1a1030" stroke-width="1.6"/><path d="M-30 6q-6-12 4-20q-2 8 8 12z" fill="#c070f0" opacity=".7"/>';
+  } else {
+    [[-20, 8, 1], [4, -4, 1.4], [28, 10, 0.9]].forEach(c => { s += '<g transform="translate(' + c[0] + ' ' + c[1] + ') scale(' + c[2] + ')"><path d="M0 8L-9-14L0-36L9-14Z" fill="#9fe6ff" stroke="#3a8ac8" stroke-width="1.6"/><path d="M0 8L-9-14L0-36Z" fill="#fff" opacity=".55"/></g>'; });
+  }
+  return s;
+}
+function islandSVG(cx, cy, r, b, seed, big){
+  const pts = blob(0, 0, r, seed), I = ISL[b];
+  let s = '<g transform="translate(' + cx + ' ' + cy + ')">';
+  s += '<ellipse cx="0" cy="' + f1(r * 0.55) + '" rx="' + f1(r * 1.3) + '" ry="' + f1(r * 0.4) + '" fill="#06284a" opacity=".28"/>';
+  if (b === 3) s += '<path d="M' + f1(-r * 0.9) + ' 8Q' + f1(-r * 0.5) + ' ' + f1(r * 0.9) + ' 0 ' + f1(r * 1.1) + 'Q' + f1(r * 0.5) + ' ' + f1(r * 0.9) + ' ' + f1(r * 0.9) + ' 8Z" fill="#8a7a6a"/>';
+  s += '<path d="' + spline(pts.map(p => [p[0], p[1] + 9]), true) + '" fill="' + I.side + '"/>';
+  s += '<path d="' + spline(pts, true) + '" fill="' + I.top + '" stroke="' + I.foam + '" stroke-width="3.5" stroke-opacity=".85"/>';
+  s += '<path d="' + spline(pts.map(p => [p[0] * 0.8, p[1] * 0.76 - 3]), true) + '" fill="#fff" opacity=".13"/>';
+  s += '<g transform="translate(0 ' + f1(-6) + ') scale(' + (big ? 1.2 : 1) + ')">' + decoFor(b, seed + 3) + '</g>';
+  return s + '</g>';
+}
+function mapBackdrop(){
+  let s = '<defs>' + lgrad('mSea', ['#1c6fb8', '#0f4f92', '#0a2f6a']) + rgrad('mG0', '#ff7a2a', .45, 0) + rgrad('mG1', '#3ab8ff', .45, 0) + rgrad('mG2', '#6fe04a', .45, 0) + rgrad('mG3', '#ffe27a', .55, 0) + rgrad('mG4', '#a14aff', .45, 0) + rgrad('mG5', '#bfeaff', .55, 0) + rgrad('mNest', '#ffd98a', .8, 0) +
+    '<pattern id="mWave" width="60" height="30" patternUnits="userSpaceOnUse"><path d="M0 15Q15 5 30 15T60 15" stroke="#9fe0ff" stroke-width="1.6" fill="none" opacity=".13"/></pattern></defs>';
+  s += '<rect width="' + MAP_W + '" height="' + MAP_H + '" fill="url(#mSea)"/><rect width="' + MAP_W + '" height="' + MAP_H + '" fill="url(#mWave)"/>';
+  // region glows
+  for (let b = 0; b < 6; b++) { const a = REGION_ANGLE[b] * Math.PI / 180, x = NEST.x + Math.cos(a) * 400, y = NEST.y + Math.sin(a) * 360; s += '<ellipse cx="' + f1(x) + '" cy="' + f1(y) + '" rx="420" ry="360" fill="url(#mG' + b + ')"/>'; }
+  // route lines between tiers of a region
+  for (let b = 0; b < 6; b++) { const L = LOCS.filter(l => l.b === b); let d = 'M' + NEST.x + ' ' + NEST.y; L.forEach(l => { d += 'L' + l.x + ' ' + l.y; }); s += '<path d="' + d + '" stroke="#fff" stroke-width="3" stroke-dasharray="3 12" stroke-linecap="round" fill="none" opacity=".28"/>'; }
+  // clouds
+  const rg = rng(77); for (let i = 0; i < 16; i++) s += cloudSVG(f1(rg() * MAP_W), f1(rg() * MAP_H), f1(1.6 + rg() * 1.8), '#fff', .1 + rg() * .12);
+  // islands
+  LOCS.forEach(l => { s += islandSVG(l.x, l.y, 70 + l.t * 5, l.b, l.id * 13 + 5, false); });
+  // home island
+  s += '<circle cx="' + NEST.x + '" cy="' + NEST.y + '" r="190" fill="url(#mNest)"/>';
+  s += '<g transform="translate(' + NEST.x + ' ' + NEST.y + ')"><ellipse cx="0" cy="48" rx="135" ry="40" fill="#06284a" opacity=".3"/><path d="' + spline(blob(0, 0, 112, 99).map(p => [p[0], p[1] + 12]), true) + '" fill="#5a3d27"/><path d="' + spline(blob(0, 0, 112, 99), true) + '" fill="#6fc850" stroke="#fff" stroke-width="4" stroke-opacity=".85"/>' +
+    '<ellipse cx="0" cy="10" rx="68" ry="34" fill="#5a3d27"/><ellipse cx="0" cy="4" rx="56" ry="26" fill="#3b2717"/><g stroke="#8a6240" stroke-width="4" stroke-linecap="round" fill="none"><path d="M-52 10Q-20 30 22 24"/><path d="M-30-8Q10-2 46 8"/></g><ellipse cx="0" cy="2" rx="14" ry="18" fill="#e3dcf3" stroke="#8d7fb5" stroke-width="2"/><circle cx="-4" cy="-4" r="2.4" fill="#8d7fb5"/><circle cx="5" cy="6" r="2.4" fill="#8d7fb5"/>' +
+    '<text y="-82" text-anchor="middle" font-size="26" font-weight="800" fill="#fff" stroke="#2a1a50" stroke-width="5" paint-order="stroke">Гнездо</text></g>';
+  // compass
+  s += '<g transform="translate(1360 1250)" opacity=".7"><circle r="46" fill="none" stroke="#fff" stroke-width="2.5"/><path d="M0-58L8 0L0 58L-8 0Z" fill="#fff" opacity=".7"/><path d="M-58 0L0-8L58 0L0 8Z" fill="#fff" opacity=".4"/><text y="-64" text-anchor="middle" font-size="20" font-weight="800" fill="#fff">С</text></g>';
+  return s;
+}
+
+/* ===== Shop, quests, achievements ===== */
+const EGGS = {
+  basic:   { name: 'Обычное яйцо', base: 200,  step: 40,  time: 20 * 60e3, odds: [62, 25, 9.5, 3, 0.5] },
+  premium: { name: 'Редкое яйцо',  base: 2000, step: 300, time: 60 * 60e3, odds: [20, 45, 25, 8.5, 1.5] }
+};
+const NAMES = ['Искра','Пепел','Бриз','Мираж','Туча','Жемчуг','Клык','Рубин','Лучик','Вихрь','Дымка','Фрост','Мох','Гром','Тень','Звёздочка','Уголёк','Нефрит','Шторм','Сапфир','Янтарь','Ночка','Кристалл','Пламя','Комета','Ураган','Шишка','Заря'];
+const MAXL = 30, OFFLINE_CAP_H = 8;
+const DAILY = [100, 150, 250, 400, 600, 900, 1500], DAILY_GEMS = [0, 0, 0, 2, 0, 0, 10];
+const SLOTS = { head: 'Голова', face: 'Лицо', neck: 'Шея' };
+// цена: gold / gems; или условие: ach (id достижения), qd (выполнено заданий)
+const ACCS = [
+  { id: 'bow',     slot: 'head', name: 'Бант',               gold: 600 },
+  { id: 'party',   slot: 'head', name: 'Праздничный колпак', qd: 8 },
+  { id: 'wreath',  slot: 'head', name: 'Цветочный венок',    gold: 2500 },
+  { id: 'wizard',  slot: 'head', name: 'Колпак мага',        gold: 6000 },
+  { id: 'helm',    slot: 'head', name: 'Рыцарский шлем',     gems: 40 },
+  { id: 'crown',   slot: 'head', name: 'Королевская корона', gems: 90 },
+  { id: 'halo',    slot: 'head', name: 'Нимб',               ach: 'a4' },
+  { id: 'glasses', slot: 'face', name: 'Очки',               gold: 900 },
+  { id: 'patch',   slot: 'face', name: 'Повязка пирата',     gold: 2000 },
+  { id: 'shades',  slot: 'face', name: 'Тёмные очки',        gold: 3500 },
+  { id: 'monocle', slot: 'face', name: 'Монокль',            gems: 30 },
+  { id: 'bell',    slot: 'neck', name: 'Колокольчик',        gold: 500 },
+  { id: 'bowtie',  slot: 'neck', name: 'Бабочка',            gold: 1000 },
+  { id: 'scarf',   slot: 'neck', name: 'Тёплый шарф',        qd: 20 },
+  { id: 'amulet',  slot: 'neck', name: 'Амулет силы',        gems: 35 }
+];
+const BGS = [
+  { id: 'nest',    name: 'Уютное гнездо',      free: true },
+  { id: 'meadow',  name: 'Цветочный луг',      qd: 30 },
+  { id: 'glacier', name: 'Ледяные горы',       gold: 8000 },
+  { id: 'volcano', name: 'Вулкан',             gold: 8000 },
+  { id: 'grotto',  name: 'Подводный грот',     gems: 50 },
+  { id: 'sky',     name: 'Небесные острова',   gems: 70 },
+  { id: 'temple',  name: 'Храм света',         ach: 'a8' },
+  { id: 'ruins',   name: 'Руины теней',        gems: 90 },
+  { id: 'galaxy',  name: 'Звёздная галактика', ach: 'a9' }
+];
+const QPOOL = [
+  { k: 'win',    t: 'Выиграй бой в экспедиции',          n: 1,   r: 150, g: 0 },
+  { k: 'boss',   t: 'Победи босса',                      n: 1,   r: 250, g: 1 },
+  { k: 'spell',  t: 'Используй заклинания 5 раз',        n: 5,   r: 150, g: 0 },
+  { k: 'expret', t: 'Забери добычу вернувшегося отряда', n: 1,   r: 100, g: 1 },
+  { k: 'feed',   t: 'Покорми дракона 3 раза',            n: 3,   r: 150, g: 0 },
+  { k: 'spend',  t: 'Потрать 500 золота',                n: 500, r: 200, g: 0 },
+  { k: 'collect',t: 'Забери доход из гнезда',            n: 1,   r: 100, g: 0 },
+  { k: 'hatch',  t: 'Вылупи дракона из яйца',            n: 1,   r: 150, g: 1 },
+  { k: 'acc',    t: 'Надень аксессуар на дракона',       n: 1,   r: 100, g: 0 },
+  { k: 'share',  t: 'Поделись игрой с другом',           n: 1,   r: 250, g: 2 }
+];
+function breedsOwned(s){ const o = {}; s.dragons.forEach(d => { o[d.b] = 1; }); return Object.keys(o).length; }
+function maxRarity(s){ let m = -1; s.dragons.forEach(d => { if (d.r > m) m = d.r; }); return m; }
+function maxLvl(s){ let m = 0; s.dragons.forEach(d => { if (d.lvl > m) m = d.lvl; }); return m; }
+function clearedCount(s){ return Object.keys(s.cleared).length; }
+const ACH = [
+  { id: 'a1', t: 'Первый дракон',        d: 'Вылупи первого дракона',            r: 100,  g: 0,  f: s => [Math.min(s.dragons.length, 1), 1] },
+  { id: 'a2', t: 'Маленькая стая',       d: 'Собери 5 драконов',                 r: 300,  g: 0,  f: s => [s.dragons.length, 5] },
+  { id: 'a3', t: 'Большая стая',         d: 'Собери 10 драконов',                r: 800,  g: 5,  f: s => [s.dragons.length, 10] },
+  { id: 'a4', t: 'Все породы',           d: 'Вылупи дракона каждой из 6 пород. Награда: нимб', r: 2000, g: 15, f: s => [breedsOwned(s), 6] },
+  { id: 'a5', t: 'Коллекционер окрасов', d: 'Открой 12 окрасов из 18',           r: 1500, g: 10, f: s => [s.seen.length, 12] },
+  { id: 'a6', t: 'Редкая находка',       d: 'Вылупи редкого дракона или лучше',  r: 200,  g: 0,  f: s => [maxRarity(s) >= 1 ? 1 : 0, 1] },
+  { id: 'a7', t: 'Эпическая находка',    d: 'Вылупи эпического дракона',         r: 500,  g: 5,  f: s => [maxRarity(s) >= 2 ? 1 : 0, 1] },
+  { id: 'a8', t: 'Легенда гнезда',       d: 'Вылупи легендарного. Награда: фон «Храм света»', r: 1500, g: 15, f: s => [maxRarity(s) >= 3 ? 1 : 0, 1] },
+  { id: 'a9', t: 'Миф наяву',            d: 'Вылупи мифического. Награда: фон «Галактика»', r: 5000, g: 40, f: s => [maxRarity(s) >= 4 ? 1 : 0, 1] },
+  { id: 'b1', t: 'Подросток',            d: 'Вырасти дракона до 5 уровня',       r: 150,  g: 0,  f: s => [maxLvl(s), 5] },
+  { id: 'b2', t: 'Взрослый дракон',      d: 'Вырасти дракона до 10 уровня',      r: 400,  g: 3,  f: s => [maxLvl(s), 10] },
+  { id: 'b3', t: 'Легендарная форма',    d: 'Вырасти дракона до 20 уровня',      r: 1500, g: 10, f: s => [maxLvl(s), 20] },
+  { id: 'w1', t: 'Первая победа',        d: 'Выиграй первый бой',                r: 200,  g: 2,  f: s => [s.wins, 1] },
+  { id: 'w2', t: 'Закалённые в боях',    d: 'Выиграй 10 боёв',                   r: 600,  g: 5,  f: s => [s.wins, 10] },
+  { id: 'w3', t: 'Ветеран',              d: 'Выиграй 50 боёв',                   r: 3000, g: 15, f: s => [s.wins, 50] },
+  { id: 'w4', t: 'Охотник на боссов',    d: 'Победи 10 боссов',                  r: 1000, g: 8,  f: s => [s.bosses, 10] },
+  { id: 'w5', t: 'Исследователь',        d: 'Пройди 12 локаций',                 r: 3000, g: 20, f: s => [clearedCount(s), 12] },
+  { id: 'w6', t: 'Покоритель мира',      d: 'Пройди все 24 локации',             r: 10000, g: 50, f: s => [clearedCount(s), 24] },
+  { id: 'd1', t: 'Три дня подряд',       d: 'Заходи 3 дня подряд',               r: 300,  g: 0,  f: s => [s.login.streak, 3] },
+  { id: 'd2', t: 'Неделя в гнезде',      d: 'Заходи 7 дней подряд',              r: 800,  g: 5,  f: s => [s.login.streak, 7] },
+  { id: 'd3', t: 'Две недели',           d: 'Заходи 14 дней подряд',             r: 2000, g: 10, f: s => [s.login.streak, 14] }
+];
+
+/* ===== State, storage, helpers ===== */
+var CONFIG = { BOT_USERNAME: '', APP_SHORT_NAME: '' };
+const tg = window.Telegram && window.Telegram.WebApp;
+try { if (tg) { tg.ready(); tg.expand(); try { tg.setHeaderColor('#1b1740'); tg.setBackgroundColor('#1b1740'); } catch (e) {} try { if (tg.disableVerticalSwipes) tg.disableVerticalSwipes(); } catch (e) {} } } catch (e) {}
+function haptic(kind){ try { if (!tg || !tg.HapticFeedback) return; if (kind === 'ok') tg.HapticFeedback.notificationOccurred('success'); else tg.HapticFeedback.impactOccurred(kind || 'light'); } catch (e) {} }
+
+const $ = s => document.querySelector(s);
+const rnd = n => Math.floor(Math.random() * n);
+const pick = a => a[rnd(a.length)];
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const fmt = n => Math.floor(n).toLocaleString('ru-RU');
+function today(){ const t = new Date(); return t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0') + '-' + String(t.getDate()).padStart(2, '0'); }
+function dayNum(s){ const p = s.split('-').map(Number); return Math.round(Date.UTC(p[0], p[1] - 1, p[2]) / 864e5); }
+function plural(n){ return n.toLowerCase().replace(/(ый|ой)$/, 'ые'); }
+function fmtTime(ms){ const t = Math.max(0, Math.ceil(ms / 1000)), h = Math.floor(t / 3600), m = Math.floor((t % 3600) / 60), sec = t % 60; if (h) return h + ' ч ' + m + ' мин'; if (m) return m + ' мин ' + sec + ' с'; return sec + ' с'; }
+function minText(m){ return m < 60 ? m + ' мин' : Math.floor(m / 60) + ' ч ' + (m % 60 ? (m % 60) + ' мин' : ''); }
+
+let state = null;
+const ui = { tab: 'home', view: 'dragon', shop: 'acc', rw: 'quests', map: { cx: NEST.x, cy: NEST.y, z: 0.5 }, fin: 0 };
+
+/* ----- storage ----- */
+const Store = {
+  cloud: null, n: 0,
+  init(){ try { if (tg && tg.CloudStorage && tg.isVersionAtLeast && tg.isVersionAtLeast('6.9')) this.cloud = tg.CloudStorage; } catch (e) {} },
+  readLocal(){ try { const t = window.localStorage.getItem('dragon_nest_v1'); return t ? JSON.parse(t) : null; } catch (e) { return null; } },
+  writeLocal(str){ try { window.localStorage.setItem('dragon_nest_v1', str); } catch (e) {} },
+  writeCloud(str){
+    const c = this.cloud; if (!c) return;
+    const parts = []; for (let i = 0; i < str.length; i += 3500) parts.push(str.slice(i, i + 3500));
+    const prev = this.n || 0;
+    parts.forEach((p, i) => c.setItem('g_' + i, p, () => {}));
+    c.setItem('g_n', String(parts.length), () => {});
+    if (prev > parts.length) { const rm = []; for (let j = parts.length; j < prev; j++) rm.push('g_' + j); try { c.removeItems(rm, () => {}); } catch (e) {} }
+    this.n = parts.length;
+  },
+  load(cb){
+    const self = this, local = this.readLocal(); let done = false;
+    function finish(cs){ if (done) return; done = true; let s = local; if (cs && (!local || (cs.savedAt || 0) >= (local.savedAt || 0))) s = cs; cb(s); }
+    if (!this.cloud) return finish(null);
+    setTimeout(() => finish(null), 4000);
+    try {
+      this.cloud.getItem('g_n', (err, n) => {
+        if (err || !n) return finish(null);
+        const cnt = parseInt(n, 10); if (!cnt) return finish(null);
+        self.n = cnt; const keys = []; for (let i = 0; i < cnt; i++) keys.push('g_' + i);
+        self.cloud.getItems(keys, (err2, vals) => { if (err2 || !vals) return finish(null); try { finish(JSON.parse(keys.map(k => vals[k] || '').join(''))); } catch (e) { finish(null); } });
+      });
+    } catch (e) { finish(null); }
+  }
+};
+let saveTimer = null, cloudTimer = null;
+function dirty(){ clearTimeout(saveTimer); saveTimer = setTimeout(saveNow, 500); if (!cloudTimer) cloudTimer = setTimeout(() => { cloudTimer = null; flushCloud(); }, 4000); }
+function saveNow(){ if (!state) return; state.savedAt = Date.now(); Store.writeLocal(JSON.stringify(state)); }
+function flushCloud(){ if (!state) return; state.savedAt = Date.now(); const str = JSON.stringify(state); Store.writeLocal(str); Store.writeCloud(str); }
+document.addEventListener('visibilitychange', () => { if (document.hidden) flushCloud(); });
+window.addEventListener('pagehide', flushCloud);
+
+/* ----- state ----- */
+function defaults(){
+  return {
+    v: 3, gold: 0, gems: 5, spent: 0, fed: 0, savedAt: 0,
+    dragons: [], active: null,
+    egg: { type: 'basic', start: Date.now() - EGGS.basic.time, dur: EGGS.basic.time },
+    tickets: { basic: 0, premium: 0 }, seen: [], lastCollect: Date.now(),
+    login: { last: '', streak: 0 }, quests: { date: '', list: [], bonus: false },
+    ach: {}, ref: false, exp: [], cleared: {}, wins: 0, bosses: 0, spells: 0, questsDone: 0,
+    accs: [], bgs: ['nest'], bg: 'nest'
+  };
+}
+function normalize(s){
+  const d = defaults();
+  for (const k in d) if (s[k] === undefined) s[k] = d[k];
+  if (s.v < 3) { s.exp = []; s.quests = { date: '', list: [], bonus: false }; s.gems = Math.max(s.gems, 5); s.v = 3; if (s.egg && s.egg.start === undefined) s.egg = d.egg; }
+  if (s.tickets.basic === undefined) s.tickets.basic = 0;
+  s.dragons.forEach(x => { if (!x.acc) x.acc = {}; });
+  if (s.bgs.indexOf('nest') < 0) s.bgs.push('nest');
+  return s;
+}
+
+/* ----- game helpers ----- */
+function active(){ return dragonById(state.active); }
+function dragonById(id){ for (let i = 0; i < state.dragons.length; i++) if (state.dragons[i].id === id) return state.dragons[i]; return null; }
+function isAway(id){ return state.exp.some(e => e.ids.indexOf(id) >= 0); }
+function stageOf(l){ return l >= 20 ? 3 : l >= 10 ? 2 : l >= 5 ? 1 : 0; }
+function needXP(l){ return 40 + l * 20; }
+function power(d){ return Math.round((10 + d.lvl * 4) * RARITY[d.r].mult); }
+function hourly(d){ return Math.round(12 * (1 + (d.lvl - 1) * 0.3) * RARITY[d.r].mult); }
+function totalHourly(){ return state.dragons.reduce((a, d) => a + hourly(d), 0); }
+function pending(){ const ms = Math.min(Math.max(0, Date.now() - state.lastCollect), OFFLINE_CAP_H * 3600e3); return ms / 3600e3 * totalHourly(); }
+function feedCost(d){ return 25 + d.lvl * 5; }
+function eggCost(t){ return EGGS[t].base + EGGS[t].step * state.dragons.length; }
+function releaseValue(d){ return Math.round(60 * RARITY[d.r].mult * (1 + d.lvl * 0.2)); }
+function eggProg(){ const e = state.egg; return e ? Math.min(1, Math.max(0, (Date.now() - e.start) / e.dur)) : 0; }
+function crackStage(p){ return p > 0.8 ? 3 : p > 0.55 ? 2 : p > 0.25 ? 1 : 0; }
+function finishedCount(){ const n = Date.now(); return state.exp.filter(e => e.end <= n).length; }
+function bestPartyPower(){ return state.dragons.filter(d => !isAway(d.id)).map(power).sort((a, b) => b - a).slice(0, 3).reduce((a, b) => a + b, 0); }
+function track(k, n){ n = n || 1; state.quests.list.forEach(q => { if (q.k === k && !q.c) q.p = Math.min(q.n, q.p + n); }); }
+function spend(n){ state.gold -= n; state.spent += n; track('spend', n); }
+function refreshQuests(){
+  const t = today();
+  if (state.quests.date === t && state.quests.list.length) return false;
+  const pool = QPOOL.filter(q => q.k !== 'win' && (q.k !== 'share' || CONFIG.BOT_USERNAME));
+  state.quests = { date: t, bonus: false, list: [QPOOL[0]].concat(shuffle(pool).slice(0, 3)).map(q => ({ k: q.k, t: q.t, n: q.n, r: q.r, g: q.g, p: 0, c: false })) };
+  return true;
+}
+function loginInfo(){
+  const L = state.login, t = today();
+  if (L.last === t) return { claimed: true, day: ((L.streak - 1) % 7) + 1, streak: L.streak };
+  const ns = (L.last && dayNum(t) - dayNum(L.last) === 1) ? L.streak + 1 : 1;
+  return { claimed: false, day: ((ns - 1) % 7) + 1, streak: ns };
+}
+function streakShown(){ const L = state.login; if (!L.last) return 0; return dayNum(today()) - dayNum(L.last) <= 1 ? L.streak : 0; }
+function achInfo(a){ const r = a.f(state), cur = Math.min(r[0], r[1]); return { cur, tar: r[1], got: !!state.ach[a.id], can: !state.ach[a.id] && r[0] >= r[1] }; }
+function badges(){
+  const b = { home: false, map: false, dragons: false, shop: false, rewards: false };
+  if (!loginInfo().claimed) b.rewards = true;
+  ACH.forEach(a => { if (achInfo(a).can) b.rewards = true; });
+  state.quests.list.forEach(q => { if (q.p >= q.n && !q.c) b.rewards = true; });
+  if (state.quests.list.length && state.quests.list.every(q => q.c) && !state.quests.bonus) b.rewards = true;
+  if (finishedCount() > 0) b.map = true;
+  if (state.egg && eggProg() >= 1) b.home = true;
+  return b;
+}
+function rollRarity(type){ const o = EGGS[type].odds; let x = Math.random() * 100, acc = 0; for (let i = 0; i < o.length; i++) { acc += o[i]; if (x < acc) return i; } return 0; }
+function newDragon(r){ return { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 5), b: rnd(BREEDS.length), v: rnd(3), r, pat: rnd(3), horn: rnd(2), name: pick(NAMES), lvl: 1, xp: 0, acc: {} }; }
+function addXP(d, n){ const before = stageOf(d.lvl); let lv = false; d.xp += n; while (d.lvl < MAXL && d.xp >= needXP(d.lvl)) { d.xp -= needXP(d.lvl); d.lvl++; lv = true; } if (d.lvl >= MAXL) d.xp = 0; return { leveled: lv, evolved: stageOf(d.lvl) > before }; }
+function ownsAcc(id){ return state.accs.indexOf(id) >= 0; }
+function ownsBg(id){ return state.bgs.indexOf(id) >= 0; }
+function checkUnlocks(){
+  const got = [];
+  ACCS.forEach(it => { if (!ownsAcc(it.id) && ((it.ach && state.ach[it.ach]) || (it.qd && state.questsDone >= it.qd))) { state.accs.push(it.id); got.push(it.name); } });
+  BGS.forEach(it => { if (!ownsBg(it.id) && ((it.ach && state.ach[it.ach]) || (it.qd && state.questsDone >= it.qd))) { state.bgs.push(it.id); got.push('Фон: ' + it.name); } });
+  if (got.length) toast('Открыто: ' + got.join(', '));
+}
+
+/* ----- toasts & modals ----- */
+let toastT = null;
+function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2400); }
+function openModal(html){ $('#modal-root').innerHTML = '<div class="overlay" data-a="overlay"><div class="sheet">' + html + '</div></div>'; }
+function closeModal(){ $('#modal-root').innerHTML = ''; }
+function setSheet(html){ const sh = document.querySelector('#modal-root .sheet'); if (!sh) { openModal(html); return; } const t = sh.scrollTop; sh.innerHTML = html; sh.scrollTop = t; }
+
+/* ===== UI: top bar, tabs, home, dragons, rewards ===== */
+function renderTop(){
+  const s = streakShown();
+  $('#top').innerHTML = '<div class="chip gold">🪙 <b id="gold">' + fmt(state.gold) + '</b></div><div class="chip gem">💎 <b id="gems">' + fmt(state.gems) + '</b></div><div class="chip">⚡ +' + fmt(totalHourly()) + '/ч</div><div class="chip' + (s ? '' : ' dim') + '">🔥 ' + s + '</div>';
+}
+const TABS = [['home', '🥚', 'Гнездо'], ['map', '🗺️', 'Карта'], ['dragons', '🐉', 'Драконы'], ['shop', '🛍️', 'Магазин'], ['rewards', '🎁', 'Награды']];
+function renderTabs(){
+  const b = badges();
+  $('#tabs').innerHTML = TABS.map(t => '<button class="' + (ui.tab === t[0] ? 'on' : '') + '" data-a="tab" data-v="' + t[0] + '"><span class="ic">' + t[1] + '</span>' + t[2] + '<i class="dot' + (b[t[0]] ? ' show' : '') + '"></i></button>').join('');
+}
+function eggShopHTML(){
+  let h = '<div class="shop">';
+  ['basic', 'premium'].forEach(t => {
+    const T = EGGS[t], o = T.odds;
+    h += '<button class="shopitem" data-a="buyegg" data-v="' + t + '"><div class="mini">' + eggSVG(t, 0) + '</div><div><b>' + T.name + '</b><span>Вылупится через ' + Math.round(T.time / 60000) + ' мин. Редкий и лучше: ' + (100 - o[0]).toFixed(0) + '%. Легендарный ' + String(o[3]).replace('.', ',') + '%, мифический ' + String(o[4]).replace('.', ',') + '%.</span></div><div class="cost">' + fmt(eggCost(t)) + ' 🪙</div></button>';
+  });
+  ['basic', 'premium'].forEach(t => { if (state.tickets[t] > 0) h += '<button class="shopitem" data-a="useticket" data-v="' + t + '"><div class="mini">' + eggSVG(t, 0) + '</div><div><b>Билет: ' + EGGS[t].name.toLowerCase() + '</b><span>Бесплатное яйцо. Билетов: ' + state.tickets[t] + '</span></div><div class="cost">Взять</div></button>'; });
+  return h + '</div>';
+}
+function eggNote(){ return state.egg ? '<div class="hint">Сначала вылупи яйцо из инкубатора, потом можно взять новое.</div>' : ''; }
+function homeHTML(){
+  const d = active(), e = state.egg;
+  let view = ui.view; if (!d) view = 'egg'; if (!e) view = 'dragon'; ui.view = view;
+  let h = '';
+  if (d && e) h += '<div class="seg"><button class="' + (view === 'dragon' ? 'on' : '') + '" data-a="view" data-v="dragon">Дракон</button><button class="' + (view === 'egg' ? 'on' : '') + '" data-a="view" data-v="egg">Яйцо</button></div>';
+  if (view === 'egg' && e) {
+    const T = EGGS[e.type], p = eggProg(), ready = p >= 1;
+    ui.eggReady = ready; ui.crack = crackStage(p);
+    h += '<div class="scene">' + sceneSVG(state.bg) + '<div class="creature egg' + (ready ? ' ready' : '') + '" id="creature" data-tap="egg"><div id="eggwrap">' + eggSVG(e.type, p) + '</div></div></div>';
+    h += '<div class="eggcap"><div class="ename">' + T.name + '</div>' + (ready
+      ? '<div class="sub">Скорлупа трескается, пора вылупляться!</div><button class="btn primary" style="margin-top:12px;min-width:240px" data-a="hatch">Вылупить дракона</button>'
+      : '<div class="bar ember"><b id="eggbar" style="width:' + (p * 100) + '%"></b></div><div class="sub" id="eggtxt">Осталось ' + fmtTime(e.start + e.dur - Date.now()) + '</div>') + '</div>';
+  } else if (d) {
+    const R = RARITY[d.r], B = BREEDS[d.b], V = B.v[d.v], st = stageOf(d.lvl);
+    h += '<div class="scene">' + sceneSVG(state.bg) + '<div class="creature" id="creature" data-tap="dragon">' + dragonSVG(d, st) + '</div></div>';
+    const pct = d.lvl >= MAXL ? 100 : d.xp / needXP(d.lvl) * 100;
+    h += '<div class="card"><div class="row"><div><div class="dname">' + d.name + '</div><div class="sub">' + B.el + ' ' + B.name + ' дракон, окрас «' + V.n + '»' + (isAway(d.id) ? '. Сейчас в экспедиции' : '') + '</div></div><span class="pill" style="--rc:' + R.color + '">' + R.name + '</span></div>' +
+      '<div class="bar"><b style="width:' + pct + '%"></b></div>' +
+      '<div class="sub">Уровень ' + d.lvl + ', ' + STAGES[st].toLowerCase() + (d.lvl >= MAXL ? '. Максимум!' : '. До следующего: ' + (needXP(d.lvl) - d.xp) + ' опыта') + '</div>' +
+      '<div class="stats"><div class="stat"><span>Сила в бою</span><b>' + power(d) + '</b></div><div class="stat"><span>Доход всех драконов</span><b>+' + fmt(totalHourly()) + ' в час</b></div></div>' +
+      '<div class="btns"><button class="btn primary" data-a="feed">Покормить 🍖<small>' + feedCost(d) + ' 🪙</small></button><button class="btn mint" data-a="collect">Собрать<small id="pendtxt">+' + fmt(Math.floor(pending())) + ' 🪙</small></button></div>' +
+      '<div class="hint">Драконы приносят золото, даже когда тебя нет (до ' + OFFLINE_CAP_H + ' часов). За добычей отправляйся на карту.</div></div>';
+    const fin = finishedCount(), act = state.exp.length;
+    if (act) h += '<div class="card row"><div><b>' + (fin ? 'Отряд вернулся!' : 'Отряды в пути: ' + act) + '</b><div class="sub">' + (fin ? 'Забери добычу на карте' : 'Время видно на карте') + '</div></div><button class="btn' + (fin ? ' primary' : '') + '" data-a="tab" data-v="map">Карта</button></div>';
+  }
+  if (!e) h += '<div class="card"><div class="dname" style="font-size:18px">Нужно новое яйцо</div><div class="sub">Каждое яйцо хранит дракона неизвестной породы и редкости.</div>' + eggShopHTML() + '</div>';
+  return h;
+}
+function dragonsHTML(){
+  let h = '<div class="stats3"><div class="stat"><span>Драконов</span><b>' + state.dragons.length + '</b></div><div class="stat"><span>Пород</span><b>' + breedsOwned(state) + ' из 6</b></div><div class="stat"><span>Окрасов</span><b>' + state.seen.length + ' из 18</b></div></div>';
+  if (!state.dragons.length) return h + '<div class="card"><div class="sub">Пока никого нет. Вылупи дракона в гнезде!</div></div>';
+  const list = state.dragons.slice().sort((a, b) => b.r - a.r || b.lvl - a.lvl);
+  h += '<div class="grid">' + list.map(d => {
+    const R = RARITY[d.r];
+    return '<button class="dcard" style="--rc:' + R.color + '" data-a="dragon" data-id="' + d.id + '">' + (d.id === state.active ? '<span class="star">⭐</span>' : '') + '<span class="pill" style="--rc:' + R.color + '">' + R.name + '</span><div class="art">' + dragonSVG(d, stageOf(d.lvl)) + '</div><b>' + d.name + '</b><span>Уровень ' + d.lvl + (isAway(d.id) ? ', в походе' : '') + '</span></button>';
+  }).join('') + '</div>';
+  h += '<h3>Альбом окрасов</h3><div class="hint">У каждой породы три окраса. Окрас открывается, когда вылупится дракон с ним.</div><div class="album">';
+  BREEDS.forEach((B, bi) => {
+    h += '<div class="arow"><div class="el">' + B.el + '</div><div class="bn">' + B.name + '</div>';
+    B.v.forEach((V, vi) => { const got = state.seen.indexOf(bi + '-' + vi) >= 0; h += got ? '<div class="swatch" title="' + V.n + '" style="--sw:' + V.body + '"></div>' : '<div class="swatch no">?</div>'; });
+    h += '</div>';
+  });
+  return h + '</div>';
+}
+function dragonModalHTML(id){
+  const d = dragonById(id); if (!d) return '';
+  const R = RARITY[d.r], B = BREEDS[d.b], V = B.v[d.v], st = stageOf(d.lvl), isA = d.id === state.active, away = isAway(d.id), sp = SPELLS[d.b];
+  let h = '<div style="--rc:' + R.color + '"><span class="banner">' + R.name + '</span><div class="big">' + dragonSVG(d, st) + '</div><h2>' + d.name + '</h2>' +
+    '<p>' + B.el + ' ' + B.name + ' дракон, окрас «' + V.n + '»<br>Уровень ' + d.lvl + ', ' + STAGES[st].toLowerCase() + '</p>' +
+    '<p>Сила в бою: ' + power(d) + '. Доход: +' + hourly(d) + ' в час.<br>Заклинание: ' + sp.ic + ' <b>' + sp.n + '</b>. ' + sp.d + '.</p>';
+  Object.keys(SLOTS).forEach(slot => {
+    const own = ACCS.filter(a => a.slot === slot && ownsAcc(a.id));
+    h += '<div class="slotname">' + SLOTS[slot] + '</div><div class="slotrow"><button class="chipb' + (!d.acc[slot] ? ' on' : '') + '" data-a="equip" data-id="' + d.id + '" data-slot="' + slot + '" data-item="">Нет</button>' +
+      own.map(a => '<button class="chipb' + (d.acc[slot] === a.id ? ' on' : '') + '" data-a="equip" data-id="' + d.id + '" data-slot="' + slot + '" data-item="' + a.id + '">' + a.name + '</button>').join('') + (own.length ? '' : '<span class="sub" style="margin:6px 4px">Купи в магазине</span>') + '</div>';
+  });
+  if (away) h += '<p><b>Сейчас в экспедиции</b></p><button class="btn" data-a="close">Закрыть</button>';
+  else if (isA) h += '<p><b>Главный дракон гнезда</b></p><button class="btn" data-a="close">Закрыть</button>';
+  else h += '<div class="two"><button class="btn primary" data-a="main" data-id="' + d.id + '">Сделать главным</button><button class="btn ghost" data-a="release" data-id="' + d.id + '">Отпустить</button></div><button class="btn" data-a="close" style="margin-top:8px">Закрыть</button>';
+  return h + '</div>';
+}
+function rewardsHTML(){
+  let h = '<div class="seg wide"><button class="' + (ui.rw === 'quests' ? 'on' : '') + '" data-a="rw" data-v="quests">Квесты</button><button class="' + (ui.rw === 'daily' ? 'on' : '') + '" data-a="rw" data-v="daily">Вход</button><button class="' + (ui.rw === 'ach' ? 'on' : '') + '" data-a="rw" data-v="ach">Достижения</button></div>';
+  if (ui.rw === 'quests') {
+    h += '<div class="hint">Новые задания каждый день. За них дают золото и кристаллы 💎. За выполненные задания открываются предметы в магазине: сейчас выполнено ' + state.questsDone + '.</div>';
+    state.quests.list.forEach((q, i) => {
+      const can = q.p >= q.n && !q.c;
+      h += '<div class="card q' + (q.c ? ' done' : '') + '"><div class="row"><div class="qt">' + q.t + '</div><div class="qr">+' + q.r + ' 🪙' + (q.g ? ' +' + q.g + ' 💎' : '') + '</div></div><div class="bar ember"><b style="width:' + (q.p / q.n * 100) + '%"></b></div><div class="row"><div class="sub">' + fmt(q.p) + ' из ' + fmt(q.n) + '</div>' + (q.c ? '<div class="sub">Получено</div>' : '<button class="btn small ' + (can ? 'primary' : '') + '" data-a="claimq" data-i="' + i + '"' + (can ? '' : ' disabled') + '>Забрать</button>') + '</div></div>';
+    });
+    const all = state.quests.list.length && state.quests.list.every(q => q.c);
+    h += '<div class="card row"><div><b>Бонус за все задания</b><div class="sub">Выполни и забери все четыре</div></div>' + (state.quests.bonus ? '<div class="sub">Получено</div>' : '<button class="btn small ' + (all ? 'primary' : '') + '" data-a="claimbonus"' + (all ? '' : ' disabled') + '>+300 🪙 +3 💎</button>') + '</div>';
+    h += '<h3>Пригласи друга</h3><div class="card"><div class="sub">Друг, который зайдёт по твоей ссылке, получит 500 золота и билет на редкое яйцо.</div><div class="btns"><button class="btn mint full" data-a="share">Поделиться игрой</button></div></div>';
+  } else if (ui.rw === 'daily') {
+    const info = loginInfo();
+    h += '<div class="card"><div class="sub">Заходи каждый день без пропусков. На седьмой день тебя ждёт сундук.</div><div class="days">';
+    for (let i = 1; i <= 7; i++) {
+      const got = info.claimed ? i <= info.day : i < info.day, now = !info.claimed && i === info.day;
+      h += '<div class="day' + (got ? ' got' : '') + (now ? ' now' : '') + '">День ' + i + '<i>' + (i === 7 ? '🎁' : got ? '✅' : '🪙') + '</i><b>' + (i === 7 ? 'Сундук' : DAILY[i - 1]) + '</b></div>';
+    }
+    h += '</div><div class="btns"><button class="btn primary full" data-a="claimdaily"' + (info.claimed ? ' disabled' : '') + '>' + (info.claimed ? 'Сегодня уже получено' : 'Получить награду дня') + '</button></div></div>';
+  } else {
+    const list = ACH.map(a => ({ a, i: achInfo(a) }));
+    list.sort((x, y) => (y.i.can - x.i.can) || (x.i.got - y.i.got));
+    list.forEach(o => {
+      const a = o.a, i = o.i;
+      h += '<div class="card ach' + (i.got ? ' got' : '') + '"><div class="row"><div><div class="at">' + a.t + '</div><div class="ad">' + a.d + '</div></div><div class="qr" style="color:var(--gold);font-weight:800;white-space:nowrap">+' + fmt(a.r) + ' 🪙' + (a.g ? '<br>+' + a.g + ' 💎' : '') + '</div></div><div class="bar ember"><b style="width:' + (i.cur / i.tar * 100) + '%"></b></div><div class="row"><div class="sub">' + fmt(i.cur) + ' из ' + fmt(i.tar) + '</div>' + (i.got ? '<div class="sub">Получено</div>' : '<button class="btn small ' + (i.can ? 'primary' : '') + '" data-a="claimach" data-id="' + a.id + '"' + (i.can ? '' : ' disabled') + '>Забрать</button>') + '</div></div>';
+    });
+  }
+  return h;
+}
+function render(){
+  renderTop(); renderTabs();
+  const sc = $('#screen'), keep = sc.scrollTop;
+  ui.fin = finishedCount();
+  sc.className = ui.tab === 'map' ? 'map' : '';
+  let html;
+  if (ui.tab === 'home') html = homeHTML();
+  else if (ui.tab === 'map') html = mapHTML();
+  else if (ui.tab === 'dragons') html = dragonsHTML();
+  else if (ui.tab === 'shop') html = shopHTML();
+  else html = rewardsHTML();
+  sc.innerHTML = html;
+  if (ui.tab === 'map') initMap(); else sc.scrollTop = keep;
+}
+
+/* ===== Map: view, markers, location & party modals, returning squads ===== */
+let MAP_BACK = '';
+function diffClass(rec){ const p = bestPartyPower(); return p >= rec * 1.1 ? 'diff-g' : p >= rec * 0.7 ? 'diff-y' : 'diff-r'; }
+function diffFor(rec, p){ return p >= rec * 1.1 ? 'легко' : p >= rec * 0.7 ? 'по силам' : 'опасно'; }
+function diffText(rec){ const p = bestPartyPower(); return p >= rec * 1.1 ? 'легко' : p >= rec * 0.7 ? 'по силам' : 'опасно'; }
+function markersSVG(){
+  let s = '';
+  LOCS.forEach(l => {
+    const B = BREEDS[l.b], done = !!state.cleared[l.id], dc = l.rec;
+    const col = diffClass(dc) === 'diff-g' ? '#6fe3a0' : diffClass(dc) === 'diff-y' ? '#ffd24a' : '#ff6b81';
+    s += '<g class="mk" data-loc="' + l.id + '" transform="translate(' + l.x + ' ' + l.y + ')" style="cursor:pointer"><circle r="40" fill="#000" opacity="0"/>' +
+      '<circle r="27" fill="' + B.col + '" stroke="#fff" stroke-width="4"/><circle r="27" fill="none" stroke="' + col + '" stroke-width="3" opacity=".9" transform="scale(1.18)"/>' +
+      '<text y="9" text-anchor="middle" font-size="27">' + B.el + '</text>' +
+      '<text y="58" text-anchor="middle" font-size="19" font-weight="800" fill="#fff" stroke="#10163a" stroke-width="5" paint-order="stroke">' + l.name + '</text>' +
+      '<text y="80" text-anchor="middle" font-size="19" fill="' + col + '" stroke="#10163a" stroke-width="4" paint-order="stroke">' + '★'.repeat(l.stars) + '<tspan fill="#8a8ab0">' + '★'.repeat(5 - l.stars) + '</tspan></text>' +
+      (done ? '<circle cx="22" cy="-22" r="11" fill="#3fbf6a" stroke="#fff" stroke-width="2.5"/><text x="22" y="-17" text-anchor="middle" font-size="14" font-weight="800" fill="#fff">✓</text>' : '') + '</g>';
+  });
+  return s;
+}
+function mapHTML(){
+  return '<div class="mapwrap" id="mapwrap"><svg id="mapsvg" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">' + MAP_BACK + '<g id="mapfx"></g>' + markersSVG() + '</svg>' +
+    (ui.hintSeen ? '' : '<div class="maphint" id="maphint">Двигай карту пальцем, масштаб щипком. Нажми на остров. Звёзды показывают сложность.</div>') +
+    '<div class="mapctl"><button data-a="mapzoom" data-v="1">＋</button><button data-a="mapzoom" data-v="-1">－</button><button data-a="mapnest">⌂</button></div><div class="squads" id="squads"></div></div>';
+}
+function mapView(){
+  const wrap = $('#mapwrap'), svg = $('#mapsvg'); if (!wrap || !svg) return;
+  const w = wrap.clientWidth || 360, h = wrap.clientHeight || 600, m = ui.map;
+  const minZ = Math.min(w / MAP_W, h / MAP_H) * 1.02;
+  m.z = Math.max(minZ, Math.min(1.8, m.z));
+  const vw = w / m.z, vh = h / m.z;
+  m.cx = Math.max(vw / 2 - 60, Math.min(MAP_W - vw / 2 + 60, m.cx)); m.cy = Math.max(vh / 2 - 60, Math.min(MAP_H - vh / 2 + 60, m.cy));
+  if (vw > MAP_W) m.cx = MAP_W / 2; if (vh > MAP_H) m.cy = MAP_H / 2;
+  svg.setAttribute('viewBox', f1(m.cx - vw / 2) + ' ' + f1(m.cy - vh / 2) + ' ' + f1(vw) + ' ' + f1(vh));
+}
+function initMap(){
+  const wrap = $('#mapwrap'); if (!wrap) return;
+  mapView(); mapFx();
+  const ptrs = new Map(); let moved = 0, t0 = 0, pinch0 = 0, z0 = 1;
+  wrap.addEventListener('pointerdown', e => {
+    if (e.target.closest('button')) return;
+    try { wrap.setPointerCapture(e.pointerId); } catch (x) {}
+    ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (ptrs.size === 1) { moved = 0; t0 = Date.now(); }
+    if (ptrs.size === 2) { const a = [...ptrs.values()]; pinch0 = Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y); z0 = ui.map.z; }
+  });
+  wrap.addEventListener('pointermove', e => {
+    const p = ptrs.get(e.pointerId); if (!p) return;
+    const dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY;
+    if (ptrs.size === 1) { if (!ui.hintSeen && moved > 30) { ui.hintSeen = true; const hh = $('#maphint'); if (hh) hh.remove(); } ui.map.cx -= dx / ui.map.z; ui.map.cy -= dy / ui.map.z; moved += Math.abs(dx) + Math.abs(dy); }
+    else if (ptrs.size === 2) { const a = [...ptrs.values()], d = Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y); if (pinch0 > 0) ui.map.z = z0 * d / pinch0; moved += 20; }
+    mapView();
+  });
+  const up = e => {
+    const had = ptrs.has(e.pointerId), single = ptrs.size === 1; ptrs.delete(e.pointerId);
+    if (had && single && moved < 10 && Date.now() - t0 < 600) {
+      const el = document.elementFromPoint(e.clientX, e.clientY), mk = el && el.closest ? el.closest('[data-loc]') : null;
+      if (mk) openLoc(+mk.getAttribute('data-loc'));
+    }
+  };
+  wrap.addEventListener('pointerup', up); wrap.addEventListener('pointercancel', up);
+  wrap.addEventListener('wheel', e => { e.preventDefault(); ui.map.z *= e.deltaY < 0 ? 1.12 : 0.89; mapView(); }, { passive: false });
+}
+function mapFx(){
+  const g = $('#mapfx'); if (!g) return;
+  const now = Date.now(); let s = '';
+  state.exp.forEach((e, i) => {
+    const L = LOCS[e.loc], p = Math.min(1, Math.max(0, (now - e.start) / (e.end - e.start))), x = L.x + (NEST.x - L.x) * p, y = L.y + (NEST.y - L.y) * p;
+    s += '<path d="M' + L.x + ' ' + L.y + 'L' + NEST.x + ' ' + NEST.y + '" stroke="#ffd24a" stroke-width="5" stroke-dasharray="4 12" stroke-linecap="round" opacity=".8"/>' +
+      '<text id="fly' + i + '" x="' + f1(x) + '" y="' + f1(y + 12) + '" text-anchor="middle" font-size="40" style="filter:drop-shadow(0 4px 4px rgba(0,0,0,.5))">🐉</text>';
+  });
+  g.innerHTML = s;
+  const sq = $('#squads');
+  if (sq) sq.innerHTML = state.exp.map((e, i) => {
+    const L = LOCS[e.loc], left = e.end - now, done = left <= 0;
+    return '<button class="sq' + (done ? ' done' : '') + '" data-a="squad" data-i="' + i + '">' + L.name + '<small id="sqt' + i + '">' + (done ? 'Вернулись! Забери добычу' : 'Летят домой: ' + fmtTime(left)) + '</small></button>';
+  }).join('');
+}
+function mapTick(){
+  const now = Date.now();
+  state.exp.forEach((e, i) => {
+    const L = LOCS[e.loc], p = Math.min(1, Math.max(0, (now - e.start) / (e.end - e.start)));
+    const f = $('#fly' + i); if (f) { f.setAttribute('x', f1(L.x + (NEST.x - L.x) * p)); f.setAttribute('y', f1(L.y + (NEST.y - L.y) * p + 12)); }
+    const t = $('#sqt' + i); if (t && e.end > now) t.textContent = 'Летят домой: ' + fmtTime(e.end - now);
+  });
+}
+
+/* ----- location & party ----- */
+function strongBreeds(b){ const r = []; for (let k = 0; k < 6; k++) if (STRONG[k].indexOf(b) >= 0) r.push(plural(BREEDS[k].name)); return r; }
+function openLoc(id){
+  const L = LOCS[id], B = BREEDS[L.b];
+  if (state.exp.some(e => e.loc === id)) { toast('Здесь уже вернулся ваш отряд, он летит домой'); }
+  const bp = bestPartyPower();
+  openModal('<div style="--rc:' + B.col + '"><span class="banner">' + B.el + ' Земли: ' + B.name.toLowerCase() + '</span><h2>' + L.name + '</h2>' +
+    '<p><span class="stars ' + diffClass(L.rec) + '">' + '★'.repeat(L.stars) + '</span> <span class="tag ' + diffClass(L.rec) + '">' + diffText(L.rec) + '</span></p>' +
+    '<div class="sum">Рекомендуемая сила отряда: <b>' + L.rec + '</b> (у твоего лучшего: ' + bp + ')<br>Враги: ' + L.minions.map(m => m[1] + ' ' + m[0]).join(', ') + '<br>Босс: ' + L.boss[1] + ' <b>' + L.boss[0] + '</b><br>Сильны против них: ' + strongBreeds(L.b).join(', ') + '<br>' +
+    'Награда: <b>' + fmt(L.gold) + ' 🪙</b>, ' + L.xp + ' опыта, ' + L.gems + ' 💎' + (state.cleared[L.id] ? '' : '<br>Первое прохождение: <b>+' + L.first + ' 💎</b>') + '<br>Путь домой после боя: <b>' + minText(L.ret) + '</b></div>' +
+    '<button class="btn primary" data-a="pickparty" data-id="' + id + '">Выбрать отряд</button><button class="btn" data-a="close" style="margin-top:8px">Закрыть</button></div>');
+}
+function partyHTML(){
+  const L = LOCS[ui.send.loc], sel = ui.send.sel.map(dragonById).filter(Boolean);
+  const avail = state.dragons.filter(d => !isAway(d.id)).sort((a, b) => power(b) - power(a));
+  const P = sel.reduce((a, d) => a + power(d), 0);
+  let adv = 0; sel.forEach(d => { if (STRONG[d.b].indexOf(L.b) >= 0) adv++; });
+  let h = '<h2>' + BREEDS[L.b].el + ' ' + L.name + '</h2><p>Выбери до 3 драконов. ⭐ значит, что порода сильна против местных врагов.</p><div class="grid pick">';
+  h += avail.map(d => { const on = ui.send.sel.indexOf(d.id) >= 0; return '<button class="dcard' + (on ? ' on' : '') + '" style="--rc:' + RARITY[d.r].color + '" data-a="pick" data-id="' + d.id + '"><div class="art">' + dragonSVG(d, stageOf(d.lvl)) + '</div><b>' + d.name + '</b><span>' + BREEDS[d.b].el + ' ' + power(d) + (STRONG[d.b].indexOf(L.b) >= 0 ? ' ⭐' : '') + '</span></button>'; }).join('') + '</div>';
+  h += '<div class="sum">' + (sel.length ? 'Сила отряда: <b>' + P + '</b> из рекомендуемых ' + L.rec + ' (' + diffFor(L.rec, P) + ')' + (adv ? '<br>Преимущество по стихиям: ' + adv + ' из ' + sel.length : '') : 'Выбери хотя бы одного дракона') + (sel.length && sel.every(d => STRONG[L.b].indexOf(d.b) >= 0) ? '<br><b class="diff-r">Местные враги сильны против твоих драконов. Лучше взять другую породу.</b>' : '') + '<br>Бой начнётся сразу, а возвращаться отряд будет ' + minText(L.ret) + '.</div>';
+  h += '<div class="two"><button class="btn" data-a="loc" data-id="' + L.id + '">Назад</button><button class="btn primary" data-a="startbattle"' + (sel.length ? '' : ' disabled') + '>В бой!</button></div>';
+  return h;
+}
+function squadModal(i){
+  const e = state.exp[i]; if (!e) return;
+  const L = LOCS[e.loc], left = e.end - Date.now(), done = left <= 0, R = e.reward;
+  const ds = e.ids.map(dragonById).filter(Boolean);
+  let h = '<h2>' + L.name + '</h2><div class="party" style="display:flex;gap:6px;justify-content:center;margin:8px 0">' + ds.map(d => '<div class="av" style="width:70px;height:60px;background:rgba(0,0,0,.2);border-radius:14px">' + dragonSVG(d, stageOf(d.lvl)) + '</div>').join('') + '</div>' +
+    '<div class="sum">Добыча: <b>' + fmt(R.gold) + ' 🪙</b>, ' + R.xp + ' опыта каждому' + (R.gems ? ', <b>' + R.gems + ' 💎</b>' : '') + (R.tb ? ', билет на обычное яйцо' : '') + (R.tp ? ', билет на редкое яйцо' : '') + (e.retreat ? '<br>Отряд отступил, добыча меньше' : '') + '</div>';
+  if (done) h += '<button class="btn primary" data-a="collectexp" data-i="' + i + '">Забрать добычу</button>';
+  else { const cost = Math.max(1, Math.ceil(left / 600e3)); h += '<p>Отряд вернётся через ' + fmtTime(left) + '</p><button class="btn mint" data-a="speedup" data-i="' + i + '">Ускорить возвращение<br><small>' + cost + ' 💎</small></button>'; }
+  openModal(h + '<button class="btn" data-a="close" style="margin-top:8px">Закрыть</button>');
+}
+function collectExp(i){
+  const e = state.exp[i]; if (!e || Date.now() < e.end) return;
+  const R = e.reward, L = LOCS[e.loc], ds = e.ids.map(dragonById).filter(Boolean), notes = [];
+  state.gold += R.gold; state.gems += R.gems || 0; state.tickets.basic += R.tb || 0; state.tickets.premium += R.tp || 0;
+  ds.forEach(d => { const res = addXP(d, R.xp); if (res.evolved) notes.push(d.name + ' вырос: ' + STAGES[stageOf(d.lvl)].toLowerCase() + '!'); else if (res.leveled) notes.push(d.name + ' достиг ' + d.lvl + ' уровня'); });
+  state.exp.splice(i, 1); track('expret', 1);
+  haptic('ok'); render();
+  openModal('<h2>Отряд вернулся!</h2><div style="font-size:60px;margin:8px 0">' + BREEDS[L.b].el + '</div><p><b>+' + fmt(R.gold) + ' 🪙</b>' + (R.gems ? ', <b>+' + R.gems + ' 💎</b>' : '') + ', ' + R.xp + ' опыта каждому дракону</p>' + ((R.tb || R.tp) ? '<p class="newlook">Найдено: ' + [R.tb ? 'билет на обычное яйцо' : '', R.tp ? 'билет на редкое яйцо' : ''].filter(Boolean).join(', ') + '</p>' : '') + (notes.length ? '<p>' + notes.join('<br>') + '</p>' : '') + '<button class="btn primary" data-a="close">Отлично</button>');
+  dirty(); flushCloud();
+}
+
+/* ===== Battle engine + UI ===== */
+let BT = null;
+const wait = ms => new Promise(r => setTimeout(r, window.__fast ? 0 : ms));
+const BATTLE_BG = ['volcano', 'grotto', 'meadow', 'temple', 'ruins', 'glacier'];
+
+function startBattle(locId, ids){
+  const L = LOCS[locId], S = L.rec / 3 * (L.t === 0 ? 0.75 : 1);
+  const party = ids.map(id => { const d = dragonById(id), P = power(d); return { id, d, name: d.name, b: d.b, hp: Math.round(P * 6), max: Math.round(P * 6), atk: Math.max(2, Math.round(P * 0.9)), cd: 0, dead: false, acted: false, art: dragonSVG(d, stageOf(d.lvl)) }; });
+  const mk = (m, boss) => ({ n: m[0], e: m[1], b: L.b, boss: !!boss, max: Math.max(6, Math.round(S * (boss ? 6.2 : 1.7) * 1.4)), hp: 0, atk: Math.max(1, Math.round(S * (boss ? 1.15 : 0.65) * 1.5 * 10) / 10), stun: 0, weak: 0, burn: 0, burnDmg: 0 });
+  const waves = [[mk(L.minions[0]), mk(L.minions[1])], [mk(L.minions[0]), mk(L.minions[1]), mk(L.minions[0])], [mk(L.boss, true)].concat(L.t >= 1 ? [mk(L.minions[1])] : [])];
+  waves.forEach(w => w.forEach(e => { e.hp = e.max; }));
+  BT = { loc: L, ids: ids.slice(), party, waves, wave: 0, enemies: waves[0], round: 1, i: 0, target: 0, log: ['Бой начался!'], over: null, busy: false, auto: false, faints: 0, fx: [] };
+  closeModal(); bRender();
+}
+const aliveE = () => BT.enemies.filter(e => e.hp > 0);
+const aliveP = () => BT.party.filter(p => !p.dead);
+function blog(m){ BT.log.push(m); if (BT.log.length > 6) BT.log.shift(); }
+function fxNum(id, txt, cls, anim){ BT.fx.push({ id, txt, cls, anim }); }
+function curTarget(){ let t = BT.enemies[BT.target]; if (!t || t.hp <= 0) { const i = BT.enemies.findIndex(e => e.hp > 0); BT.target = Math.max(0, i); t = BT.enemies[BT.target]; } return t; }
+function hitEnemy(e, dmg, cls){ dmg = Math.max(1, Math.round(dmg)); e.hp = Math.max(0, e.hp - dmg); const i = BT.enemies.indexOf(e); fxNum('en' + i, '-' + dmg, cls || 'hit', 'flash'); return dmg; }
+function hitDragon(p, dmg){ dmg = Math.max(1, Math.round(dmg)); p.hp = Math.max(0, p.hp - dmg); const i = BT.party.indexOf(p); fxNum('pc' + i, '-' + dmg, 'me', 'shake'); if (p.hp <= 0 && !p.dead) { p.dead = true; BT.faints++; blog(p.name + ' без сил!'); } return dmg; }
+function rnd2(){ return 0.92 + Math.random() * 0.16; }
+
+function doAction(a, kind){
+  const t = curTarget();
+  if (kind === 'atk') {
+    const m = elemMult(a.b, t.b), dmg = hitEnemy(t, a.atk * m * rnd2(), m > 1 ? 'crit' : 'hit');
+    blog(a.name + ' бьёт: ' + t.n + ' -' + dmg + (m > 1 ? ' (сильный удар!)' : m < 1 ? ' (слабый удар)' : ''));
+    return;
+  }
+  const sp = SPELLS[a.b]; a.cd = 3; state.spells++; track('spell', 1);
+  fxNum('pc' + BT.party.indexOf(a), sp.ic, 'fxs', '');
+  if (sp.kind === 'heal') {
+    aliveP().forEach(p => { const h = Math.round(a.atk * sp.m); const before = p.hp; p.hp = Math.min(p.max, p.hp + h); fxNum('pc' + BT.party.indexOf(p), '+' + (p.hp - before), 'heal', ''); });
+    blog(a.name + ': ' + sp.n + ', отряд исцелён');
+  } else if (sp.kind === 'aoe') {
+    aliveE().forEach(e => { const m = elemMult(a.b, e.b); hitEnemy(e, a.atk * sp.m * m * rnd2(), m > 1 ? 'crit' : 'hit'); if (sp.fx === 'weak') e.weak = 2; });
+    blog(a.name + ': ' + sp.n + ' по всем врагам' + (sp.fx === 'weak' ? ', они ослаблены' : ''));
+  } else {
+    const m = elemMult(a.b, t.b), dmg = hitEnemy(t, a.atk * sp.m * m * rnd2(), m > 1 ? 'crit' : 'hit');
+    if (sp.fx === 'burn') t.burn = 3, t.burnDmg = a.atk * 0.35;
+    if (sp.fx === 'stun') t.stun = 1;
+    if (sp.fx === 'drain') { const h = Math.round(dmg * 0.5), before = a.hp; a.hp = Math.min(a.max, a.hp + h); fxNum('pc' + BT.party.indexOf(a), '+' + (a.hp - before), 'heal', ''); }
+    blog(a.name + ': ' + sp.n + ', ' + t.n + ' -' + dmg + (sp.fx === 'burn' ? ', горит' : sp.fx === 'stun' ? ', оглушён' : ''));
+  }
+}
+async function nextWave(){
+  if (BT.wave >= BT.waves.length - 1) { BT.over = 'win'; finishBattle('win'); return false; }
+  BT.wave++; BT.enemies = BT.waves[BT.wave]; BT.target = 0;
+  blog(BT.wave === BT.waves.length - 1 ? 'Появился босс: ' + BT.loc.boss[0] + '!' : 'Новая волна врагов!');
+  const B1 = BT; bRender(); await wait(700); return BT === B1;
+}
+async function enemyPhase(){
+  const B0 = BT; blog('Ход врагов'); bRender(); await wait(400); if (BT !== B0) return;
+  BT.enemies.forEach(e => { if (e.hp > 0 && e.burn > 0) { hitEnemy(e, e.burnDmg, 'hit'); e.burn--; } });
+  if (!aliveE().length) return;
+  for (const e of BT.enemies.slice()) {
+    if (e.hp <= 0) continue;
+    if (e.stun > 0) { e.stun--; blog(e.n + ' оглушён и пропускает ход'); bRender(); await wait(380); if (BT !== B0) return; continue; }
+    const weak = e.weak > 0 ? 0.65 : 1;
+    if (e.boss && BT.round % 3 === 0) {
+      blog(e.n + ' использует мощный удар по всем!');
+      aliveP().forEach(p => hitDragon(p, e.atk * 0.85 * weak * elemMult(e.b, p.b) * rnd2()));
+    } else {
+      const ps = aliveP(); if (!ps.length) break;
+      const p = pick(ps), m = elemMult(e.b, p.b), dmg = hitDragon(p, e.atk * weak * m * rnd2());
+      blog(e.n + ' бьёт ' + p.name + ' -' + dmg);
+    }
+    bRender(); await wait(480); if (BT !== B0) return;
+    if (!aliveP().length) { BT.over = 'lose'; bRender(); return; }
+  }
+}
+function newRound(){
+  BT.round++;
+  BT.party.forEach(p => { p.acted = false; if (p.cd > 0) p.cd--; });
+  BT.enemies.forEach(e => { if (e.weak > 0) e.weak--; });
+  BT.i = BT.party.findIndex(p => !p.dead);
+}
+async function progress(){
+  if (!BT) return;
+  if (!aliveE().length) { if (!(await nextWave())) return; }
+  const nxt = BT.party.findIndex(p => !p.dead && !p.acted);
+  if (nxt >= 0) { BT.i = nxt; return; }
+  await enemyPhase();
+  if (!BT || BT.over) return;
+  if (!aliveE().length) { if (!(await nextWave())) return; }
+  newRound();
+}
+async function bAct(kind, tIdx){
+  if (!BT || BT.busy || BT.over) return;
+  const a = BT.party[BT.i]; if (!a || a.dead) return;
+  if (kind === 'spell' && a.cd > 0) { toast('Заклинание перезаряжается: ещё ' + a.cd + ' хода'); return; }
+  if (tIdx !== undefined && tIdx !== null) BT.target = tIdx;
+  BT.busy = true; doAction(a, kind); a.acted = true; bRender(); await wait(600);
+  await progress();
+  if (!BT || BT.over === 'win') return;
+  BT.busy = false; bRender();
+  if (BT.auto && !BT.over) autoStep();
+}
+async function autoStep(){
+  if (!BT || BT.busy || BT.over || !BT.auto) return;
+  await wait(250);
+  if (!BT || BT.busy || BT.over || !BT.auto) return;
+  const a = BT.party[BT.i]; if (!a) return;
+  const sp = SPELLS[a.b], hurt = aliveP().some(p => p.hp < p.max * 0.6);
+  let kind = 'atk';
+  if (a.cd === 0 && (sp.kind !== 'heal' || hurt)) kind = 'spell';
+  const alive = BT.enemies.map((e, i) => ({ e, i })).filter(o => o.e.hp > 0).sort((x, y) => (elemMult(a.b, y.e.b) - elemMult(a.b, x.e.b)) || (x.e.hp - y.e.hp));
+  bAct(kind, alive.length ? alive[0].i : 0);
+}
+function bRender(){
+  if (!BT || window.__noui) return;
+  const L = BT.loc, el = $('#battle'); el.classList.add('show');
+  const act = BT.party[BT.i];
+  const en = BT.enemies.map((e, i) => '<button class="en' + (e.boss ? ' boss' : '') + (e.hp <= 0 ? ' dead' : '') + (i === BT.target && e.hp > 0 ? ' sel' : '') + '" id="en' + i + '" data-a="target" data-i="' + i + '"><span class="st">' + (e.burn ? '🔥' : '') + (e.stun ? '💫' : '') + (e.weak ? '⬇️' : '') + '</span><span class="em">' + e.e + '</span><div class="nm">' + e.n + '</div><div class="hp"><b style="width:' + (e.hp / e.max * 100) + '%"></b></div></button>').join('');
+  const party = BT.party.map((p, i) => '<div class="pc' + (i === BT.i && !BT.over ? ' act' : '') + (p.dead ? ' dead' : '') + '" id="pc' + i + '"><span class="cd">' + (p.cd > 0 ? '⏳' + p.cd : SPELLS[p.b].ic) + '</span><div class="art">' + p.art + '</div><div class="nm">' + p.name + '</div><div class="hp ally"><b style="width:' + (p.hp / p.max * 100) + '%"></b></div></div>').join('');
+  const log = BT.log.slice(-3).map((m, i, a) => '<div' + (i < a.length - 1 ? ' class="old"' : '') + '>' + m + '</div>').join('');
+  let act2;
+  if (BT.over === 'lose') act2 = '<div class="info">Отряд повержен</div><button class="btn primary" data-a="bretry">Повторить бой</button><button class="btn" data-a="bretreat">Отступить домой</button>';
+  else if (BT.busy || !act) act2 = '<div class="info">' + (BT.auto ? 'Авто-бой…' : 'Ход…') + '</div><button class="btn' + (BT.auto ? ' mint' : '') + '" data-a="bauto">⏩ Авто' + (BT.auto ? ': вкл' : '') + '</button><button class="btn" data-a="bretreat">🏃 Отступить</button>';
+  else { const sp = SPELLS[act.b]; act2 = '<div class="info">Ходит ' + act.name + '. Нажми на врага, чтобы выбрать цель.</div><button class="btn primary" data-a="bact" data-k="atk">⚔️ Атака</button><button class="btn' + (act.cd > 0 ? '' : ' mint') + '" data-a="bact" data-k="spell"' + (act.cd > 0 ? ' disabled' : '') + '>' + sp.ic + ' ' + sp.n + '<small>' + (act.cd > 0 ? 'ещё ' + act.cd + ' хода' : sp.d) + '</small></button><button class="btn' + (BT.auto ? ' mint' : '') + '" data-a="bauto">⏩ Авто' + (BT.auto ? ': вкл' : '') + '</button><button class="btn" data-a="bretreat">🏃 Отступить</button>'; }
+  el.innerHTML = '<div class="bt"><div class="bgs">' + sceneSVG(BATTLE_BG[L.b]) + '</div><div class="bt-top"><div>⚔️ ' + L.name + '<small>' + '★'.repeat(L.stars) + '</small></div><div style="text-align:right">Волна ' + (BT.wave + 1) + ' из ' + BT.waves.length + '<small>Раунд ' + BT.round + '</small></div></div><div class="bt-en">' + en + '</div><div class="bt-log">' + log + '</div><div class="bt-party">' + party + '</div><div class="bt-act">' + act2 + '</div></div>';
+  BT.fx.splice(0).forEach(f => {
+    const t = document.getElementById(f.id); if (!t) return;
+    if (f.cls === 'fxs') { const s = document.createElement('div'); s.className = 'fxs'; s.textContent = f.txt; t.appendChild(s); setTimeout(() => s.remove(), 800); return; }
+    const s = document.createElement('div'); s.className = 'dmg ' + f.cls; s.textContent = f.txt; t.appendChild(s); setTimeout(() => s.remove(), 950);
+    if (f.anim) { t.classList.add(f.anim); setTimeout(() => t.classList.remove(f.anim), 400); }
+  });
+}
+function closeBattle(){ const el = $('#battle'); el.classList.remove('show'); el.innerHTML = ''; }
+function finishBattle(res){
+  const L = BT.loc, ids = BT.ids, now = Date.now(), noFaint = BT.faints === 0; let R, ret;
+  if (res === 'win') {
+    const first = !state.cleared[L.id];
+    R = { gold: Math.round(L.gold * (noFaint ? 1.15 : 1)), xp: L.xp, gems: L.gems + (first ? L.first : 0), tb: Math.random() < L.egg[0] ? 1 : 0, tp: Math.random() < L.egg[1] ? 1 : 0 };
+    state.cleared[L.id] = true; state.wins++; state.bosses++; track('win', 1); track('boss', 1); ret = L.ret;
+    state.exp.push({ loc: L.id, ids, start: now, end: now + ret * 60e3, reward: R, retreat: false });
+    haptic('ok');
+  } else {
+    R = { gold: Math.round(L.gold * 0.25), xp: Math.round(L.xp * 0.3), gems: 0, tb: 0, tp: 0 }; ret = Math.max(5, Math.round(L.ret / 2));
+    state.exp.push({ loc: L.id, ids, start: now, end: now + ret * 60e3, reward: R, retreat: true });
+  }
+  const first = res === 'win' && R.gems > L.gems;
+  const info = BT; BT = null; closeBattle();
+  ui.tab = 'map'; render();
+  openModal('<h2>' + (res === 'win' ? 'Победа!' : 'Отступление') + '</h2><div style="font-size:64px;margin:6px 0">' + (res === 'win' ? '🏆' : '🏳️') + '</div>' +
+    '<p>' + (res === 'win' ? L.boss[1] + ' ' + L.boss[0] + ' повержен' + (noFaint ? '. Ни один дракон не пал, добыча больше на 15%' : '') + '.' : 'Отряд отступил с малой добычей.') + '</p>' +
+    '<div class="sum">Добыча: <b>' + fmt(R.gold) + ' 🪙</b>, ' + R.xp + ' опыта' + (R.gems ? ', <b>' + R.gems + ' 💎</b>' + (first ? ' (с бонусом за первое прохождение)' : '') : '') + (R.tb ? ', билет на яйцо' : '') + (R.tp ? ', билет на редкое яйцо' : '') + '<br>Отряд летит домой <b>' + minText(ret) + '</b>. Добыча придёт вместе с ним.</div>' +
+    '<button class="btn primary" data-a="close">К карте</button>');
+  dirty(); flushCloud();
+}
+
+/* ===== Shop ===== */
+function previewDragon(slot, id){ const d = active() || { b: 0, v: 0, r: 0, pat: 0, horn: 0, lvl: 10, acc: {} }; const c = { b: d.b, v: d.v, r: d.r, pat: d.pat, horn: d.horn, lvl: d.lvl, acc: {} }; if (slot) c.acc[slot] = id; return c; }
+function priceTag(it){
+  if (it.free) return '<div class="pr">Бесплатно</div>';
+  if (it.gold) return '<div class="pr">' + fmt(it.gold) + ' 🪙</div>';
+  if (it.gems) return '<div class="pr">' + it.gems + ' 💎</div>';
+  if (it.ach) { const a = ACH.filter(x => x.id === it.ach)[0]; return '<div class="pr lock">Награда: «' + a.t + '»</div>'; }
+  if (it.qd) return '<div class="pr lock">Заданий: ' + Math.min(state.questsDone, it.qd) + ' из ' + it.qd + '</div>';
+  return '';
+}
+function canBuy(it){ return !!(it.gold || it.gems); }
+function shopHTML(){
+  let h = '<div class="seg wide"><button class="' + (ui.shop === 'acc' ? 'on' : '') + '" data-a="shoptab" data-v="acc">Аксессуары</button><button class="' + (ui.shop === 'bg' ? 'on' : '') + '" data-a="shoptab" data-v="bg">Фоны</button><button class="' + (ui.shop === 'egg' ? 'on' : '') + '" data-a="shoptab" data-v="egg">Яйца</button></div>';
+  if (ui.shop === 'acc') {
+    h += '<div class="hint">Аксессуары открываются за золото, кристаллы 💎 или награды за задания. Надевать их можно в карточке дракона.</div>';
+    Object.keys(SLOTS).forEach(slot => {
+      h += '<h3>' + SLOTS[slot] + '</h3><div class="grid3">';
+      ACCS.filter(a => a.slot === slot).forEach(it => {
+        const own = ownsAcc(it.id);
+        const org = slot === 'neck' ? '60% 40%' : '70% 24%';
+        h += '<div class="item' + (own ? ' own' : '') + '"><div class="art">' + sceneSVG('nest') + '<div style="position:absolute;inset:0;transform:scale(2.15);transform-origin:' + org + '">' + dragonSVG(previewDragon(slot, it.id), 2) + '</div></div><b>' + it.name + '</b>' + (own ? '<div class="pr lock">Куплено</div>' : priceTag(it)) + (!own && canBuy(it) ? '<button class="btn small primary" data-a="buyitem" data-k="acc" data-id="' + it.id + '">Купить</button>' : '') + '</div>';
+      });
+      h += '</div>';
+    });
+  } else if (ui.shop === 'bg') {
+    h += '<div class="hint">Фон гнезда виден на главной странице. Некоторые фоны дают за достижения и задания.</div><div class="grid3" style="grid-template-columns:repeat(2,minmax(0,1fr))">';
+    BGS.forEach(it => {
+      const own = ownsBg(it.id), cur = state.bg === it.id;
+      h += '<div class="item' + (cur ? ' on' : own ? ' own' : '') + '"><div class="art" style="padding-bottom:75%">' + sceneSVG(it.id) + '</div><b>' + it.name + '</b>' + (own ? '<div class="pr lock">' + (cur ? 'Выбран' : 'Куплено') + '</div>' : priceTag(it)) +
+        (own && !cur ? '<button class="btn small mint" data-a="selectbg" data-id="' + it.id + '">Выбрать</button>' : !own && canBuy(it) ? '<button class="btn small primary" data-a="buyitem" data-k="bg" data-id="' + it.id + '">Купить</button>' : '') + '</div>';
+    });
+    h += '</div>';
+  } else {
+    h += '<div class="card"><div class="dname" style="font-size:18px">Яйца драконов</div><div class="sub">Каждое яйцо хранит дракона неизвестной породы и редкости.</div>' + eggNote() + (state.egg ? '' : eggShopHTML()) + '</div>';
+    if (state.egg) h += '<div class="card row"><div><b>В инкубаторе уже есть яйцо</b><div class="sub">Вылупи его в гнезде</div></div><button class="btn" data-a="tab" data-v="home">Гнездо</button></div>';
+  }
+  return h;
+}
+function buyItem(kind, id){
+  const list = kind === 'acc' ? ACCS : BGS, it = list.filter(x => x.id === id)[0]; if (!it) return;
+  if (kind === 'acc' ? ownsAcc(id) : ownsBg(id)) return;
+  if (it.gold) { if (state.gold < it.gold) { toast('Не хватает золота: нужно ' + fmt(it.gold)); return; } spend(it.gold); }
+  else if (it.gems) { if (state.gems < it.gems) { toast('Не хватает кристаллов: нужно ' + it.gems); return; } state.gems -= it.gems; }
+  else return;
+  if (kind === 'acc') {
+    state.accs.push(id); const d = active();
+    if (d && !d.acc[it.slot]) { d.acc[it.slot] = id; track('acc', 1); toast('Куплено и надето на ' + d.name); } else toast('Куплено: ' + it.name);
+  } else { state.bgs.push(id); toast('Куплен фон: ' + it.name); }
+  haptic('ok'); render(); dirty();
+}
+
+/* ===== Actions, ticking, start ===== */
+function squish(el, cls){ cls = cls || 'squish'; el.classList.remove('squish', 'wob', 'happy'); void el.offsetWidth; el.classList.add(cls); setTimeout(() => el.classList.remove(cls), cls === 'happy' ? 620 : 300); }
+function pop(host, e, txt){ const r = host.getBoundingClientRect(), s = document.createElement('div'); s.className = 'pop'; s.textContent = txt; s.style.left = (e.clientX - r.left - 14 + (Math.random() * 30 - 15)) + 'px'; s.style.top = (e.clientY - r.top - 30) + 'px'; host.appendChild(s); setTimeout(() => s.remove(), 900); }
+function hatch(){
+  const eg = state.egg, d = newDragon(rollRarity(eg.type)), key = d.b + '-' + d.v, isNew = state.seen.indexOf(key) < 0;
+  if (isNew) state.seen.push(key);
+  state.dragons.push(d); if (!state.active) state.active = d.id;
+  state.egg = null; ui.view = 'dragon'; track('hatch', 1);
+  haptic('ok'); render(); showHatch(d, isNew); dirty(); flushCloud();
+}
+function showHatch(d, newLook){
+  const R = RARITY[d.r], B = BREEDS[d.b], V = B.v[d.v]; let bits = '';
+  for (let i = 0; i < 16; i++) { const a = i / 16 * Math.PI * 2 + Math.random() * 0.4, dist = 110 + Math.random() * 90; bits += '<i style="--dx:' + Math.round(Math.cos(a) * dist) + 'px;--dy:' + Math.round(Math.sin(a) * dist) + 'px;--rot:' + rnd(360) + 'deg"></i>'; }
+  openModal('<div style="--rc:' + R.color + '"><div class="burst">' + bits + '</div><span class="banner">' + R.name + '</span><div class="big" style="width:260px;height:221px">' + dragonSVG(d, 0) + '</div><h2>' + d.name + '</h2><p>' + B.el + ' ' + B.name + ' дракон, окрас «' + V.n + '»</p>' + (newLook ? '<p class="newlook">Новый окрас в альбоме!</p>' : '') + (d.r >= 3 ? '<p><b>Невероятная удача!</b> Такие драконы встречаются очень редко.</p>' : '') + '<button class="btn primary" data-a="close">Забрать</button></div>');
+}
+function buyEgg(t){
+  if (state.egg) { toast('Сначала вылупи текущее яйцо'); return; }
+  const c = eggCost(t); if (state.gold < c) { toast('Не хватает золота: нужно ' + fmt(c)); return; }
+  spend(c); state.egg = { type: t, start: Date.now(), dur: EGGS[t].time }; ui.view = 'egg'; ui.tab = 'home'; haptic('ok'); render(); dirty();
+}
+function feed(){
+  const d = active(); if (!d) return;
+  if (d.lvl >= MAXL) { toast('Дракон достиг максимального уровня'); return; }
+  const c = feedCost(d); if (state.gold < c) { toast('Не хватает золота: нужно ' + c); return; }
+  spend(c); state.fed++; track('feed', 1);
+  const res = addXP(d, 30); haptic('ok'); render(); const cr = $('#creature'); if (cr) squish(cr, 'happy');
+  if (res.evolved) { openModal('<h2>Дракон вырос!</h2><div class="big" style="width:260px;height:221px">' + dragonSVG(d, stageOf(d.lvl)) + '</div><p>' + d.name + ' теперь: ' + STAGES[stageOf(d.lvl)].toLowerCase() + '. Он сильнее и красивее!</p><button class="btn primary" data-a="close">Отлично</button>'); }
+  else if (res.leveled) toast('Уровень ' + d.lvl + '!');
+  dirty();
+}
+function collectGold(){ const amt = Math.floor(pending()); if (amt < 1) { toast('Пока нечего собирать'); return; } state.gold += amt; state.lastCollect = Date.now(); track('collect', 1); haptic('ok'); toast('Собрано: +' + fmt(amt) + ' 🪙'); render(); dirty(); }
+function showDaily(){
+  const info = loginInfo(); if (info.claimed) return; const chest = info.day === 7;
+  openModal('<h2>Награда за вход</h2><div style="font-size:90px;line-height:150px">' + (chest ? '🎁' : '🪙') + '</div><p>День ' + info.day + ' из 7. Серия: ' + info.streak + (info.streak > 1 ? ' дн. подряд' : ' день') + '.</p><p><b>' + (chest ? '1 500 золота, 10 💎 и билет на редкое яйцо' : fmt(DAILY[info.day - 1]) + ' золота' + (DAILY_GEMS[info.day - 1] ? ' и ' + DAILY_GEMS[info.day - 1] + ' 💎' : '')) + '</b></p><button class="btn primary" data-a="claimdaily">Получить</button>');
+}
+function claimDaily(){
+  const info = loginInfo(); if (info.claimed) return; const chest = info.day === 7, amt = DAILY[info.day - 1];
+  state.gold += amt; state.gems += DAILY_GEMS[info.day - 1]; if (chest) state.tickets.premium++;
+  state.login = { last: today(), streak: info.streak }; haptic('ok'); closeModal(); toast(chest ? 'Сундук: 1 500 🪙, 10 💎 и билет' : 'Награда: +' + fmt(amt) + ' 🪙'); render(); dirty(); flushCloud();
+}
+function shareLink(){ const u = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) || ''; return 'https://t.me/' + CONFIG.BOT_USERNAME + (CONFIG.APP_SHORT_NAME ? '/' + CONFIG.APP_SHORT_NAME : '') + '?startapp=ref_' + u; }
+function share(){
+  if (!CONFIG.BOT_USERNAME) { toast('Сначала впиши BOT_USERNAME в коде игры'); return; }
+  const url = 'https://t.me/share/url?url=' + encodeURIComponent(shareLink()) + '&text=' + encodeURIComponent('Вылупи своего дракона и отправляйся в бой! Шанс найти мифического.');
+  try { if (tg && tg.openTelegramLink) tg.openTelegramLink(url); else window.open(url, '_blank'); } catch (e) {}
+  track('share', 1); render(); dirty();
+}
+function releaseDragon(id){ const d = dragonById(id); if (d && id !== state.active && !isAway(id)) { state.gold += releaseValue(d); state.dragons = state.dragons.filter(x => x.id !== id); toast('Дракон улетел'); } closeModal(); render(); dirty(); }
+
+document.addEventListener('pointerdown', e => {
+  const el = e.target.closest && e.target.closest('[data-tap]'); if (!el) return; e.preventDefault();
+  if (el.dataset.tap === 'dragon') { if (active()) { squish(el); pop(el.parentElement, e, '❤️'); haptic('light'); } } else { squish(el, 'wob'); haptic('light'); }
+});
+document.addEventListener('click', e => {
+  const el = e.target.closest && e.target.closest('[data-a]'); if (!el) return;
+  const a = el.dataset.a;
+  if (a === 'overlay') { if (e.target === el) closeModal(); return; }
+  switch (a) {
+    case 'close': closeModal(); break;
+    case 'tab': ui.tab = el.dataset.v; closeModal(); render(); break;
+    case 'view': ui.view = el.dataset.v; render(); break;
+    case 'rw': ui.rw = el.dataset.v; render(); break;
+    case 'shoptab': ui.shop = el.dataset.v; render(); break;
+    case 'feed': feed(); break;
+    case 'collect': collectGold(); break;
+    case 'hatch': if (state.egg && eggProg() >= 1) hatch(); break;
+    case 'buyegg': buyEgg(el.dataset.v); break;
+    case 'useticket': { const t = el.dataset.v; if (state.tickets[t] > 0 && !state.egg) { state.tickets[t]--; state.egg = { type: t, start: Date.now(), dur: EGGS[t].time }; ui.view = 'egg'; ui.tab = 'home'; haptic('ok'); render(); dirty(); } break; }
+    case 'claimdaily': claimDaily(); break;
+    case 'claimq': { const q = state.quests.list[+el.dataset.i]; if (q && q.p >= q.n && !q.c) { q.c = true; state.gold += q.r; state.gems += q.g || 0; state.questsDone++; haptic('ok'); toast('Награда: +' + q.r + ' 🪙' + (q.g ? ' +' + q.g + ' 💎' : '')); checkUnlocks(); render(); dirty(); } break; }
+    case 'claimbonus': if (!state.quests.bonus && state.quests.list.every(q => q.c)) { state.quests.bonus = true; state.gold += 300; state.gems += 3; haptic('ok'); toast('Бонус: +300 🪙 +3 💎'); render(); dirty(); } break;
+    case 'claimach': { const ac = ACH.filter(x => x.id === el.dataset.id)[0]; if (ac && achInfo(ac).can) { state.ach[ac.id] = 1; state.gold += ac.r; state.gems += ac.g || 0; haptic('ok'); toast('Достижение: +' + fmt(ac.r) + ' 🪙' + (ac.g ? ' +' + ac.g + ' 💎' : '')); checkUnlocks(); render(); dirty(); } break; }
+    case 'share': share(); break;
+    case 'dragon': openModal(dragonModalHTML(el.dataset.id)); break;
+    case 'equip': { const d = dragonById(el.dataset.id); if (d) { const it = el.dataset.item; if (it) { d.acc[el.dataset.slot] = it; track('acc', 1); } else delete d.acc[el.dataset.slot]; haptic('light'); render(); setSheet(dragonModalHTML(d.id)); dirty(); } break; }
+    case 'main': state.active = el.dataset.id; closeModal(); toast('Новый главный дракон'); render(); dirty(); break;
+    case 'release': { const d = dragonById(el.dataset.id); if (d) openModal('<h2>Отпустить ' + d.name + '?</h2><p>Дракон улетит навсегда, а ты получишь ' + fmt(releaseValue(d)) + ' 🪙. Окрас останется в альбоме.</p><div class="two"><button class="btn" data-a="close">Оставить</button><button class="btn primary" data-a="releaseok" data-id="' + d.id + '">Отпустить</button></div>'); break; }
+    case 'releaseok': releaseDragon(el.dataset.id); break;
+    case 'buyitem': buyItem(el.dataset.k, el.dataset.id); break;
+    case 'selectbg': state.bg = el.dataset.id; toast('Фон выбран'); render(); dirty(); break;
+    /* map */
+    case 'mapzoom': ui.map.z *= el.dataset.v === '1' ? 1.3 : 0.77; mapView(); break;
+    case 'mapnest': ui.map.cx = NEST.x; ui.map.cy = NEST.y; mapView(); break;
+    case 'loc': openLoc(+el.dataset.id); break;
+    case 'pickparty': if (!state.dragons.some(d => !isAway(d.id))) { toast('Все драконы в пути, дождись возвращения'); break; } ui.send = { loc: +el.dataset.id, sel: [] }; setSheet(partyHTML()); break;
+    case 'pick': { if (!ui.send) break; const ix = ui.send.sel.indexOf(el.dataset.id); if (ix >= 0) ui.send.sel.splice(ix, 1); else if (ui.send.sel.length < 3) ui.send.sel.push(el.dataset.id); else toast('Максимум 3 дракона'); setSheet(partyHTML()); break; }
+    case 'startbattle': if (ui.send && ui.send.sel.length) { const ids = ui.send.sel.filter(id => dragonById(id) && !isAway(id)); if (ids.length) startBattle(ui.send.loc, ids); } break;
+    case 'squad': squadModal(+el.dataset.i); break;
+    case 'collectexp': closeModal(); collectExp(+el.dataset.i); break;
+    case 'speedup': { const i = +el.dataset.i, ex = state.exp[i]; if (!ex) break; const cost = Math.max(1, Math.ceil((ex.end - Date.now()) / 600e3)); if (state.gems < cost) { toast('Не хватает кристаллов: нужно ' + cost); break; } state.gems -= cost; ex.end = Date.now(); render(); squadModal(i); dirty(); break; }
+    /* battle */
+    case 'target': if (BT && !BT.busy && !BT.over) { BT.target = +el.dataset.i; bRender(); } break;
+    case 'bact': bAct(el.dataset.k); break;
+    case 'bauto': if (BT) { BT.auto = !BT.auto; bRender(); if (BT.auto && !BT.busy) autoStep(); } break;
+    case 'bretry': if (BT) { const id = BT.loc.id, ids = BT.ids; startBattle(id, ids); } break;
+    case 'bretreat': if (BT) finishBattle('retreat'); break;
+  }
+});
+
+function tick(){
+  if (!state) return;
+  if (refreshQuests() && ui.tab === 'rewards') render();
+  const now = Date.now(); let redraw = false;
+  if (finishedCount() !== ui.fin) redraw = true;
+  if (ui.tab === 'map') mapTick();
+  if (state.egg) {
+    const p = eggProg(), eb = $('#eggbar');
+    if (eb) { eb.style.width = (p * 100) + '%'; const et = $('#eggtxt'); if (et) et.textContent = 'Осталось ' + fmtTime(state.egg.start + state.egg.dur - now); const cs = crackStage(p); if (cs !== ui.crack) { ui.crack = cs; const w = $('#eggwrap'); if (w) w.innerHTML = eggSVG(state.egg.type, p); } }
+    if (p >= 1 && !ui.eggReady && $('#eggwrap') && ui.tab === 'home') redraw = true;
+  }
+  if (redraw && !BT) { render(); if (ui.tab === 'map') mapFx(); }
+  const pe = $('#pendtxt'); if (pe) pe.textContent = '+' + fmt(Math.floor(pending())) + ' 🪙';
+  const g = $('#gold'); if (g) g.textContent = fmt(state.gold);
+  const gm = $('#gems'); if (gm) gm.textContent = fmt(state.gems);
+  const b = badges(), dots = document.querySelectorAll('#tabs .dot');
+  for (let i = 0; i < dots.length; i++) dots[i].classList.toggle('show', !!b[TABS[i][0]]);
+}
+function start(loaded){
+  state = normalize(loaded || defaults());
+  let sp = ''; try { sp = (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param) || ''; } catch (e) {}
+  const fresh = !loaded;
+  if (fresh && sp.indexOf('ref_') === 0 && !state.ref) { state.ref = true; state.gold += 500; state.tickets.premium += 1; }
+  refreshQuests(); MAP_BACK = mapBackdrop(); render(); dirty();
+  if (fresh && state.ref) setTimeout(() => toast('Подарок от друга: 500 🪙 и билет на редкое яйцо'), 600);
+  else if (!loginInfo().claimed) setTimeout(showDaily, 350);
+  setInterval(tick, 1000); setInterval(flushCloud, 30000);
+  window.addEventListener('resize', () => { if (ui.tab === 'map') mapView(); });
+}
+Store.init(); Store.load(start);
+
+</script>
+</body>
+</html>
